@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>טיול כרמל 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Rubik', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-24">
+
+  <!-- Header -->
+  <header class="bg-emerald-800 text-white p-4 shadow-md sticky top-0 z-50">
+    <div class="max-w-md mx-auto flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-bold tracking-tight">🌲 טיול כרמל וחוף הבונים</h1>
+        <p class="text-xs text-emerald-200 mt-0.5">3 משפחות • 17 משתתפים • חוות משמר הכרמל</p>
+      </div>
+      <div id="status-indicator" class="flex items-center gap-1.5 bg-emerald-900/60 px-2.5 py-1 rounded-full text-[10px] text-emerald-200 border border-emerald-700">
+        <span id="status-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span id="status-text">פעיל</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs (לו"ז ראשון) -->
+  <div class="max-w-md mx-auto px-4 mt-3">
+    <div class="grid grid-cols-3 gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 text-center text-xs font-bold">
+      <button onclick="switchTab('schedule')" id="tab-schedule" class="py-2.5 rounded-lg bg-emerald-700 text-white transition-colors">🗺️ לו"ז ומסלולים</button>
+      <button onclick="switchTab('food')" id="tab-food" class="py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">🍲 רשימת אוכל</button>
+      <button onclick="switchTab('gear')" id="tab-gear" class="py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">🎒 רשימת ציוד</button>
+    </div>
+  </div>
+
+  <main class="max-w-md mx-auto px-4 mt-3 space-y-4">
+
+    <!-- ==================== TAB 1: SCHEDULE ==================== -->
+    <section id="view-schedule" class="space-y-4">
+      <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+        <details class="text-xs">
+          <summary class="font-bold text-emerald-800 cursor-pointer py-1">➕ הוספת פעילות / עצירה ללו"ז</summary>
+          <form onsubmit="addScheduleItem(event)" class="mt-2 space-y-2">
+            <div class="flex gap-2">
+              <select id="sched-day" class="border border-slate-300 rounded-lg px-2 py-1.5 text-xs bg-white w-1/3">
+                <option value="wednesday">יום רביעי</option>
+                <option value="thursday">יום חמישי</option>
+              </select>
+              <input id="sched-time" type="text" placeholder="שעה (למשל 11:00)" class="border border-slate-300 rounded-lg px-2 py-1.5 text-xs w-2/3 focus:ring-2 focus:ring-emerald-500 focus:outline-none" required>
+            </div>
+            <input id="sched-title" type="text" placeholder="כותרת הפעילות" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" required>
+            <input id="sched-desc" type="text" placeholder="פירוט / הערות (אופציונלי)" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <button type="submit" class="w-full bg-emerald-700 text-white py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-800">הוסף אירוע</button>
+          </form>
+        </details>
+      </div>
+
+      <!-- רביעי -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border-r-4 border-emerald-600">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="font-bold text-slate-900 text-sm">יום רביעי: נחל אורן ומשמר הכרמל</h2>
+          <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded">יום 1</span>
+        </div>
+        <div id="schedule-list-wednesday" class="space-y-3"></div>
+      </div>
+
+      <!-- חמישי -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border-r-4 border-blue-500">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="font-bold text-slate-900 text-sm">יום חמישי: נחל כחל וחוף הבונים</h2>
+          <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded">יום 2</span>
+        </div>
+        <div id="schedule-list-thursday" class="space-y-3"></div>
+      </div>
+
+      <div class="text-center">
+        <button onclick="resetScheduleDefaults()" class="text-[11px] text-slate-400 hover:text-emerald-700 underline">איפוס לו"ז לברירת מחדל</button>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: FOOD ==================== -->
+    <section id="view-food" class="hidden space-y-3">
+      <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+        <form onsubmit="addFoodItem(event)" class="space-y-2">
+          <div class="flex gap-2">
+            <input id="food-input" type="text" placeholder="שם המצרך..." class="flex-1 border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" required>
+            <input id="food-qty" type="text" placeholder="כמות (למשל: 3 ק&quot;ג)" class="w-1/3 border border-slate-300 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" required>
+          </div>
+          <div class="flex gap-2">
+            <select id="food-assignee" class="flex-1 border border-slate-300 rounded-lg px-2 py-1.5 text-xs bg-white font-medium">
+              <option value="קנייה">🛒 קנייה</option>
+              <option value="טרם שובץ">טרם שובץ</option>
+              <option value="פישר-כהן">פישר-כהן</option>
+              <option value="ליפשיץ - מעאנטש">ליפשיץ - מעאנטש</option>
+              <option value="אחיטוב -כהן">אחיטוב -כהן</option>
+            </select>
+            <button type="submit" class="bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-800">+ הוסף מצרך</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="flex items-center justify-between text-[11px] text-slate-500 px-1">
+        <span>ניתן לערוך את הכמות ישירות בתיבת הטקסט שלה</span>
+        <button onclick="resetFoodDefaults()" class="text-emerald-700 underline font-semibold">איפוס לברירת מחדל</button>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <ul id="food-list" class="divide-y divide-slate-100 text-xs"></ul>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: GEAR ==================== -->
+    <section id="view-gear" class="hidden space-y-3">
+      <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+        <form onsubmit="addGearItem(event)" class="space-y-2">
+          <div class="flex gap-2">
+            <input id="gear-input" type="text" placeholder="פריט ציוד..." class="flex-1 border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" required>
+            <input id="gear-qty" type="text" placeholder="כמות (למשל: 1 יח')" class="w-1/3 border border-slate-300 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" required>
+          </div>
+          <div class="flex gap-2">
+            <select id="gear-assignee" class="flex-1 border border-slate-300 rounded-lg px-2 py-1.5 text-xs bg-white font-medium">
+              <option value="טרם שובץ">טרם שובץ</option>
+              <option value="פישר-כהן">פישר-כהן</option>
+              <option value="ליפשיץ - מעאנטש">ליפשיץ - מעאנטש</option>
+              <option value="אחיטוב -כהן">אחיטוב -כהן</option>
+            </select>
+            <button type="submit" class="bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-800">+ הוסף ציוד</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="flex items-center justify-between text-[11px] text-slate-500 px-1">
+        <span>ניתן לערוך את הכמות ישירות בתיבת הטקסט שלה</span>
+        <button onclick="resetGearDefaults()" class="text-emerald-700 underline font-semibold">איפוס לברירת מחדל</button>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <ul id="gear-list" class="divide-y divide-slate-100 text-xs"></ul>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+	// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+	const firebaseConfig = {
+	  apiKey: "AIzaSyCf5swfGHgCocFeBPT8nmrx_pgCQr_InD4",
+	  authDomain: "carmel--trip.firebaseapp.com",
+	  databaseURL: "https://carmel--trip-default-rtdb.firebaseio.com",
+	  projectId: "carmel--trip",
+	  storageBucket: "carmel--trip.firebasestorage.app",
+	  messagingSenderId: "799100537624",
+	  appId: "1:799100537624:web:fef75dbf131720d0ccac6d",
+	  measurementId: "G-Y9H92G303G"
+	};
+
+    let db = null;
+    const isFirebaseConfigured = !firebaseConfig.apiKey.includes("YOUR_API_KEY");
+
+    if (isFirebaseConfigured) {
+      try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        document.getElementById('status-text').innerText = "ענן מסונכרן";
+      } catch (err) {
+        console.warn("שגיאה ב-Firebase", err);
+      }
+    } else {
+      document.getElementById('status-text').innerText = "מצב מקומי";
+    }
+
+    const defaultSchedule = [
+      { id: "s1", day: "wednesday", time: "11:00", title: "מפגש בתחילת מסלול נחל אורן", desc: "חניון האגם. חלוקת מים ונשנושים, כריכים עצמאיים בצהריים." },
+      { id: "s2", day: "wednesday", time: "15:30", title: "הגעה לחאן משמר הכרמל", desc: "התמקמות, פריסת מזרונים/אוהלים, קפה, תה ונשנושי אחה\"צ." },
+      { id: "s3", day: "wednesday", time: "18:30", title: "ארוחת ערב: מטפונה + פויקה", desc: "הדלקת מדורה וגחלים, הטמנת עופות וירקות שורש, בישול פויקה איטי." },
+      { id: "s4", day: "thursday", time: "08:00", title: "בוקר סאג' ושקשוקה", desc: "לישת פיתות חמות על הסאג' לצד מחבת שקשוקה ענקית. קיפול החאן." },
+      { id: "s5", day: "thursday", time: "10:00", title: "מסלול נחל כחל", desc: "הליכה מוצלת בין חורש כרמלי, תצפיות וירידה אל ערוץ הנחל ומערת כחל." },
+      { id: "s6", day: "thursday", time: "13:30", title: "חוף הבונים (שימורים, לחם וים)", desc: "טבילה מרעננת, פריסת צהריים של שימורים (טונה, תירס), לחמים ואבטיח קר." }
+    ];
+
+    const initialFood = [
+      { id: "f1", name: "עופות שלמים נקיים (למטפונה)", qty: "3 יח'", assignee: "קנייה", done: false },
+      { id: "f2", name: "בשר קדירה חתוך (שריר/אסאדו לפויקה)", qty: "2 ק\"ג", assignee: "קנייה", done: false },
+      { id: "f3", name: "נייר אפייה + נייר כסף עבה למדורה", qty: "2 גלילים", assignee: "קנייה", done: false },
+      { id: "f4", name: "יין אדום / בירה כהה לפויקה + סילאן ותבלינים", qty: "1 בקבוק", assignee: "קנייה", done: false },
+      { id: "f5", name: "קפה שחור, תה, סוכר וחלב", qty: "ערכה + 2 חלב", assignee: "קנייה", done: false },
+      { id: "f6", name: "קמח לפיתות סאג' + שמרים יבשים", qty: "2 ק\"ג", assignee: "קנייה", done: false },
+      { id: "f7", name: "ממרח שוקולד + שמן זית וזעתר לסאג'", qty: "2 שוקולד + שמן", assignee: "קנייה", done: false },
+      { id: "f8", name: "ביצים (לשקשוקה ענקית)", qty: "30 יח'", assignee: "קנייה", done: false },
+      { id: "f9", name: "עגבניות, פלפלים ובצל לשקשוקה", qty: "4 ק\"ג עגבניות", assignee: "קנייה", done: false },
+      { id: "f10", name: "ירקות שורש (תפו\"א, בטטות, גזר ושום)", qty: "12 תפו\"א + 5 בטטות", assignee: "קנייה", done: false },
+      { id: "f11", name: "שימורי טונה (לחוף הבונים)", qty: "6 קופסאות", assignee: "קנייה", done: false },
+      { id: "f12", name: "תירס + מלפפונים חמוצים ומיונז", qty: "3 תירס + 2 חמוצים", assignee: "קנייה", done: false },
+      { id: "f13", name: "לחם פרוס / חלות", qty: "3 כיכרות", assignee: "קנייה", done: false },
+      { id: "f14", name: "אבטיחים קרים", qty: "2 יח'", assignee: "קנייה", done: false },
+      { id: "f15", name: "מרשמלו, שיפודים וחטיפים", qty: "3 חבילות", assignee: "קנייה", done: false },
+      { id: "f16", name: "כלים ח\"פ מתכלים (עמוקים לפויקה, כוסות, סכו\"ם)", qty: "חבילה גדולה", assignee: "קנייה", done: false },
+      { id: "f17", name: "שקיות זבל עבות + נייר ניגוב ומגבונים", qty: "2 גלילים + 4 מגבונים", assignee: "קנייה", done: false }
+    ];
+
+    const initialGear = [
+      { id: "g1", name: "סיר פויקה (מס' 3 או 4) + ידית הרמה", qty: "1 יח'", assignee: "טרם שובץ", done: false },
+      { id: "g2", name: "את חפירה קטן / מעדר (למטפונה ולגחלים)", qty: "1 יח'", assignee: "טרם שובץ", done: false },
+      { id: "g3", name: "אוהלים ומזרנים משפחתיים", qty: "ל-3 משפחות", assignee: "טרם שובץ", done: false },
+      { id: "g4", name: "סאג' הפוך + כף ייעודית / מבער", qty: "1 יח'", assignee: "טרם שובץ", done: false },
+      { id: "g5", name: "קרש חיתוך עץ גדול + סכין שף טובה", qty: "1 סט", assignee: "טרם שובץ", done: false },
+      { id: "g6", name: "תאורת שטח / פנסים למאהל", qty: "3 יח'", assignee: "טרם שובץ", done: false },
+      { id: "g7", name: "מחבת שקשוקה גדולה / סוטאז'", qty: "1 יח'", assignee: "טרם שובץ", done: false },
+      { id: "g8", name: "ערכת עזרה ראשונה ותכשיר נגד יתושים", qty: "1 ערכה", assignee: "טרם שובץ", done: false },
+      { id: "g9", name: "צידנית גדולה + קרחומים לים", qty: "2 יח'", assignee: "טרם שובץ", done: false }
+    ];
+
+    const KEY_FOOD = 'carmel_food_inline_v6';
+    const KEY_GEAR = 'carmel_gear_inline_v6';
+    const KEY_SCHED = 'carmel_sched_inline_v6';
+
+    let localSchedule = JSON.parse(localStorage.getItem(KEY_SCHED)) || defaultSchedule;
+    let localFood = JSON.parse(localStorage.getItem(KEY_FOOD)) || initialFood;
+    let localGear = JSON.parse(localStorage.getItem(KEY_GEAR)) || initialGear;
+
+    function switchTab(tabId) {
+      ['schedule', 'food', 'gear'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.add('hidden');
+        document.getElementById(`tab-${t}`).className = 'py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors';
+      });
+      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+      document.getElementById(`tab-${tabId}`).className = 'py-2.5 rounded-lg bg-emerald-700 text-white transition-colors';
+    }
+
+    function getBadgeClass(assignee) {
+      switch (assignee) {
+        case 'פישר-כהן': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+        case 'ליפשיץ - מעאנטש': return 'bg-blue-100 text-blue-800 border-blue-200';
+        case 'אחיטוב -כהן': return 'bg-purple-100 text-purple-800 border-purple-200';
+        case 'קנייה': return 'bg-amber-100 text-amber-800 border-amber-200 font-bold';
+        default: return 'bg-slate-100 text-slate-600 border-slate-200';
+      }
+    }
+
+    // --- SCHEDULE ---
+    function renderSchedule(items) {
+      const wedList = document.getElementById('schedule-list-wednesday');
+      const thuList = document.getElementById('schedule-list-thursday');
+      wedList.innerHTML = '';
+      thuList.innerHTML = '';
+
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = "border-r-2 pr-3 py-1 flex justify-between items-start " + (item.day === 'wednesday' ? "border-emerald-300" : "border-blue-300");
+        div.innerHTML = `
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-xs ${item.day === 'wednesday' ? 'text-emerald-800' : 'text-blue-800'}">${item.time}</span>
+              <span class="font-semibold text-xs text-slate-800">${item.title}</span>
+            </div>
+            ${item.desc ? `<p class="text-[11px] text-slate-500 mt-0.5">${item.desc}</p>` : ''}
+          </div>
+          <div class="flex items-center gap-1.5 text-slate-400">
+            <button onclick="editScheduleItem('${item.id}')" title="ערוך" class="hover:text-emerald-700 text-xs">✏️</button>
+            <button onclick="deleteScheduleItem('${item.id}')" title="מחק" class="hover:text-rose-600 text-xs">🗑️</button>
+          </div>
+        `;
+        if (item.day === 'wednesday') wedList.appendChild(div);
+        else thuList.appendChild(div);
+      });
+    }
+
+    function addScheduleItem(e) {
+      e.preventDefault();
+      const day = document.getElementById('sched-day').value;
+      const time = document.getElementById('sched-time').value.trim();
+      const title = document.getElementById('sched-title').value.trim();
+      const desc = document.getElementById('sched-desc').value.trim();
+
+      const newItem = { id: 's_' + Date.now(), day, time, title, desc };
+      if (db) {
+        db.ref('carmel_trip_app/schedule/' + newItem.id).set(newItem);
+      } else {
+        localSchedule.push(newItem);
+        localStorage.setItem(KEY_SCHED, JSON.stringify(localSchedule));
+        renderSchedule(localSchedule);
+      }
+      document.getElementById('sched-time').value = '';
+      document.getElementById('sched-title').value = '';
+      document.getElementById('sched-desc').value = '';
+    }
+
+    function editScheduleItem(id) {
+      const item = (db ? null : localSchedule.find(i => i.id === id));
+      const currentTitle = item ? item.title : '';
+      const currentTime = item ? item.time : '';
+      
+      const newTime = prompt("שעה מעודכנת:", currentTime);
+      if (newTime === null) return;
+      const newTitle = prompt("כותרת הפעילות:", currentTitle);
+      if (newTitle === null) return;
+      const newDesc = prompt("פירוט:", item ? item.desc : '');
+
+      if (db) {
+        db.ref('carmel_trip_app/schedule/' + id).update({ time: newTime, title: newTitle, desc: newDesc });
+      } else {
+        if (item) {
+          item.time = newTime;
+          item.title = newTitle;
+          item.desc = newDesc;
+          localStorage.setItem(KEY_SCHED, JSON.stringify(localSchedule));
+          renderSchedule(localSchedule);
+        }
+      }
+    }
+
+    function deleteScheduleItem(id) {
+      if (!confirm("למחוק אירוע זה מהלו\"ז?")) return;
+      if (db) {
+        db.ref('carmel_trip_app/schedule/' + id).remove();
+      } else {
+        localSchedule = localSchedule.filter(i => i.id !== id);
+        localStorage.setItem(KEY_SCHED, JSON.stringify(localSchedule));
+        renderSchedule(localSchedule);
+      }
+    }
+
+    function resetScheduleDefaults() {
+      if (!confirm("לאפס את הלו\"ז לברירת המחדל?")) return;
+      if (db) {
+        const schedMap = {};
+        defaultSchedule.forEach(i => schedMap[i.id] = i);
+        db.ref('carmel_trip_app/schedule').set(schedMap);
+      } else {
+        localSchedule = [...defaultSchedule];
+        localStorage.setItem(KEY_SCHED, JSON.stringify(localSchedule));
+        renderSchedule(localSchedule);
+      }
+    }
+
+    // --- FOOD (Inline quantity input) ---
+    function renderFood(items) {
+      const listEl = document.getElementById('food-list');
+      listEl.innerHTML = '';
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.className = `p-3 flex items-center justify-between gap-2 ${item.done ? 'bg-slate-50 opacity-60' : ''}`;
+        const badge = getBadgeClass(item.assignee);
+
+        li.innerHTML = `
+          <div class="flex items-center gap-2 flex-1 min-w-0">
+            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleFood('${item.id}', ${!item.done})" class="rounded text-emerald-700 h-4 w-4 cursor-pointer">
+            <div class="flex flex-col min-w-0 flex-1">
+              <span class="text-slate-800 font-semibold truncate ${item.done ? 'line-through text-slate-400' : ''}">${item.name}</span>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="text-[10px] text-slate-400 font-medium">כמות:</span>
+                <input type="text" value="${item.qty || '1'}" onchange="saveFoodQty('${item.id}', this.value)" 
+                  class="w-28 bg-amber-50 text-amber-900 border border-amber-300 rounded px-1.5 py-0.5 text-xs font-bold focus:ring-1 focus:ring-amber-500 focus:outline-none">
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-1">
+            <select onchange="changeFoodAssignee('${item.id}', this.value)" class="text-[11px] font-semibold rounded-lg px-2 py-1 border ${badge} focus:outline-none cursor-pointer">
+              <option value="קנייה" ${item.assignee === 'קנייה' ? 'selected' : ''}>🛒 קנייה</option>
+              <option value="טרם שובץ" ${item.assignee === 'טרם שובץ' ? 'selected' : ''}>טרם שובץ</option>
+              <option value="פישר-כהן" ${item.assignee === 'פישר-כהן' ? 'selected' : ''}>פישר-כהן</option>
+              <option value="ליפשיץ - מעאנטש" ${item.assignee === 'ליפשיץ - מעאנטש' ? 'selected' : ''}>ליפשיץ - מעאנטש</option>
+              <option value="אחיטוב -כהן" ${item.assignee === 'אחיטוב -כהן' ? 'selected' : ''}>אחיטוב -כהן</option>
+            </select>
+            <button onclick="editFoodNamePrompt('${item.id}')" title="ערוך שם מצרך" class="text-slate-400 hover:text-emerald-700 p-1">✏️</button>
+            <button onclick="deleteFoodItem('${item.id}')" title="מחק מוצר" class="text-slate-400 hover:text-rose-600 p-1">🗑️</button>
+          </div>
+        `;
+        listEl.appendChild(li);
+      });
+    }
+
+    function saveFoodQty(id, newQty) {
+      if (!newQty.trim()) return;
+      if (db) {
+        db.ref(`carmel_trip_app/food/${id}/qty`).set(newQty.trim());
+      } else {
+        const item = localFood.find(i => i.id === id);
+        if (item) {
+          item.qty = newQty.trim();
+          localStorage.setItem(KEY_FOOD, JSON.stringify(localFood));
+        }
+      }
+    }
+
+    function addFoodItem(e) {
+      e.preventDefault();
+      const name = document.getElementById('food-input').value.trim();
+      const qty = document.getElementById('food-qty').value.trim() || '1 יח\'';
+      const assignee = document.getElementById('food-assignee').value;
+      if (!name) return;
+
+      const newItem = { id: 'f_' + Date.now(), name, qty, assignee, done: false };
+      if (db) {
+        db.ref('carmel_trip_app/food/' + newItem.id).set(newItem);
+      } else {
+        localFood.unshift(newItem);
+        localStorage.setItem(KEY_FOOD, JSON.stringify(localFood));
+        renderFood(localFood);
+      }
+      document.getElementById('food-input').value = '';
+      document.getElementById('food-qty').value = '';
+    }
+
+    function editFoodNamePrompt(id) {
+      const item = (db ? null : localFood.find(i => i.id === id));
+      const oldName = item ? item.name : '';
+      const newName = prompt("ערוך שם מצרך:", oldName);
+      if (!newName || !newName.trim()) return;
+      
+      if (db) {
+        db.ref(`carmel_trip_app/food/${id}/name`).set(newName.trim());
+      } else {
+        if (item) {
+          item.name = newName.trim();
+          localStorage.setItem(KEY_FOOD, JSON.stringify(localFood));
+          renderFood(localFood);
+        }
+      }
+    }
+
+    function deleteFoodItem(id) {
+      if (!confirm("להסיר מצרך זה מהרשימה?")) return;
+      if (db) {
+        db.ref(`carmel_trip_app/food/${id}`).remove();
+      } else {
+        localFood = localFood.filter(i => i.id !== id);
+        localStorage.setItem(KEY_FOOD, JSON.stringify(localFood));
+        renderFood(localFood);
+      }
+    }
+
+    function toggleFood(id, done) {
+      if (db) {
+        db.ref(`carmel_trip_app/food/${id}/done`).set(done);
+      } else {
+        const item = localFood.find(i => i.id === id);
+        if (item) item.done = done;
+        localStorage.setItem(KEY_FOOD, JSON.stringify(localFood));
+        renderFood(localFood);
+      }
+    }
+
+    function changeFoodAssignee(id, assignee) {
+      if (db) {
+        db.ref(`carmel_trip_app/food/${id}/assignee`).set(assignee);
+      } else {
+        const item = localFood.find(i => i.id === id);
+        if (item) item.assignee = assignee;
+        localStorage.setItem(KEY_FOOD, JSON.stringify(localFood));
+        renderFood(localFood);
+      }
+    }
+
+    function resetFoodDefaults() {
+      if (!confirm("לאפס את רשימת האוכל לברירת המחדל עם כל הכמויות?")) return;
+      if (db) {
+        const foodMap = {};
+        initialFood.forEach(item => foodMap[item.id] = item);
+        db.ref('carmel_trip_app/food').set(foodMap);
+      } else {
+        localFood = [...initialFood];
+        localStorage.setItem(KEY_FOOD, JSON.stringify(localFood));
+        renderFood(localFood);
+      }
+    }
+
+    // --- GEAR (Inline quantity input) ---
+    function renderGear(items) {
+      const listEl = document.getElementById('gear-list');
+      listEl.innerHTML = '';
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.className = `p-3 flex items-center justify-between gap-2 ${item.done ? 'bg-slate-50 opacity-60' : ''}`;
+        const badge = getBadgeClass(item.assignee);
+
+        li.innerHTML = `
+          <div class="flex items-center gap-2 flex-1 min-w-0">
+            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleGear('${item.id}', ${!item.done})" class="rounded text-emerald-700 h-4 w-4 cursor-pointer">
+            <div class="flex flex-col min-w-0 flex-1">
+              <span class="text-slate-800 font-semibold truncate ${item.done ? 'line-through text-slate-400' : ''}">${item.name}</span>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="text-[10px] text-slate-400 font-medium">כמות:</span>
+                <input type="text" value="${item.qty || '1'}" onchange="saveGearQty('${item.id}', this.value)" 
+                  class="w-28 bg-slate-100 text-slate-700 border border-slate-300 rounded px-1.5 py-0.5 text-xs font-bold focus:ring-1 focus:ring-slate-400 focus:outline-none">
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1">
+            <select onchange="changeGearAssignee('${item.id}', this.value)" class="text-[11px] font-semibold rounded-lg px-2 py-1 border ${badge} focus:outline-none cursor-pointer">
+              <option value="טרם שובץ" ${item.assignee === 'טרם שובץ' ? 'selected' : ''}>טרם שובץ</option>
+              <option value="פישר-כהן" ${item.assignee === 'פישר-כהן' ? 'selected' : ''}>פישר-כהן</option>
+              <option value="ליפשיץ - מעאנטש" ${item.assignee === 'ליפשיץ - מעאנטש' ? 'selected' : ''}>ליפשיץ - מעאנטש</option>
+              <option value="אחיטוב -כהן" ${item.assignee === 'אחיטוב -כהן' ? 'selected' : ''}>אחיטוב -כהן</option>
+            </select>
+            <button onclick="editGearNamePrompt('${item.id}')" title="ערוך שם פריט" class="text-slate-400 hover:text-emerald-700 p-1">✏️</button>
+            <button onclick="deleteGearItem('${item.id}')" title="מחק פריט" class="text-slate-400 hover:text-rose-600 p-1">🗑️</button>
+          </div>
+        `;
+        listEl.appendChild(li);
+      });
+    }
+
+    function saveGearQty(id, newQty) {
+      if (!newQty.trim()) return;
+      if (db) {
+        db.ref(`carmel_trip_app/gear/${id}/qty`).set(newQty.trim());
+      } else {
+        const item = localGear.find(i => i.id === id);
+        if (item) {
+          item.qty = newQty.trim();
+          localStorage.setItem(KEY_GEAR, JSON.stringify(localGear));
+        }
+      }
+    }
+
+    function addGearItem(e) {
+      e.preventDefault();
+      const name = document.getElementById('gear-input').value.trim();
+      const qty = document.getElementById('gear-qty').value.trim() || '1 יח\'';
+      const assignee = document.getElementById('gear-assignee').value;
+      if (!name) return;
+
+      const newItem = { id: 'g_' + Date.now(), name, qty, assignee, done: false };
+      if (db) {
+        db.ref('carmel_trip_app/gear/' + newItem.id).set(newItem);
+      } else {
+        localGear.unshift(newItem);
+        localStorage.setItem(KEY_GEAR, JSON.stringify(localGear));
+        renderGear(localGear);
+      }
+      document.getElementById('gear-input').value = '';
+      document.getElementById('gear-qty').value = '';
+    }
+
+    function editGearNamePrompt(id) {
+      const item = (db ? null : localGear.find(i => i.id === id));
+      const oldName = item ? item.name : '';
+      const newName = prompt("ערוך שם פריט ציוד:", oldName);
+      if (!newName || !newName.trim()) return;
+
+      if (db) {
+        db.ref(`carmel_trip_app/gear/${id}/name`).set(newName.trim());
+      } else {
+        if (item) {
+          item.name = newName.trim();
+          localStorage.setItem(KEY_GEAR, JSON.stringify(localGear));
+          renderGear(localGear);
+        }
+      }
+    }
+
+    function deleteGearItem(id) {
+      if (!confirm("להסיר פריט זה מרשימת הציוד?")) return;
+      if (db) {
+        db.ref(`carmel_trip_app/gear/${id}`).remove();
+      } else {
+        localGear = localGear.filter(i => i.id !== id);
+        localStorage.setItem(KEY_GEAR, JSON.stringify(localGear));
+        renderGear(localGear);
+      }
+    }
+
+    function toggleGear(id, done) {
+      if (db) {
+        db.ref(`carmel_trip_app/gear/${id}/done`).set(done);
+      } else {
+        const item = localGear.find(i => i.id === id);
+        if (item) item.done = done;
+        localStorage.setItem(KEY_GEAR, JSON.stringify(localGear));
+        renderGear(localGear);
+      }
+    }
+
+    function changeGearAssignee(id, assignee) {
+      if (db) {
+        db.ref(`carmel_trip_app/gear/${id}/assignee`).set(assignee);
+      } else {
+        const item = localGear.find(i => i.id === id);
+        if (item) item.assignee = assignee;
+        localStorage.setItem(KEY_GEAR, JSON.stringify(localGear));
+        renderGear(localGear);
+      }
+    }
+
+    function resetGearDefaults() {
+      if (!confirm("לאפס את רשימת הציוד לברירת המחדל עם כל הכמויות?")) return;
+      if (db) {
+        const gearMap = {};
+        initialGear.forEach(item => gearMap[item.id] = item);
+        db.ref('carmel_trip_app/gear').set(gearMap);
+      } else {
+        localGear = [...initialGear];
+        localStorage.setItem(KEY_GEAR, JSON.stringify(localGear));
+        renderGear(localGear);
+      }
+    }
+
+    // --- INITIALIZATION ---
+    if (db) {
+      db.ref('carmel_trip_app/schedule').on('value', snap => {
+        const val = snap.val();
+        if (!val) resetScheduleDefaults();
+        else renderSchedule(Object.values(val));
+      });
+      db.ref('carmel_trip_app/food').on('value', snap => {
+        const val = snap.val();
+        if (!val) resetFoodDefaults();
+        else renderFood(Object.values(val));
+      });
+      db.ref('carmel_trip_app/gear').on('value', snap => {
+        const val = snap.val();
+        if (!val) resetGearDefaults();
+        else renderGear(Object.values(val));
+      });
+    } else {
+      renderSchedule(localSchedule);
+      renderFood(localFood);
+      renderGear(localGear);
+    }
+  </script>
+</body>
+</html>

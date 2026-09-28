@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>גולן · ראשון–שלישי</title>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBiFDNYbNT25Rwo_EMx7pijn8lZ6mkJah4",
+    authDomain: "golan-trip.firebaseapp.com",
+    databaseURL: "https://golan-trip-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "golan-trip",
+    storageBucket: "golan-trip.firebasestorage.app",
+    messagingSenderId: "674604933245",
+    appId: "1:674604933245:web:5317ceda1bb82fa5dd1114",
+    measurementId: "G-MT3D0BNW7P"
+  };
+
+  let dbRef = null;
+  try {
+    firebase.initializeApp(firebaseConfig);
+    dbRef = firebase.database().ref("golan_trip_data");
+  } catch(e) {
+    console.error("Firebase init failed", e);
+  }
+</script>
+
+<style>
+  :root{ --ink:#1E1F21; --stone:#E5E7E0; --teal:#0E6E68; --gold:#A0731C; --hair:rgba(30,31,33,.16); }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{background:#E5E7E0}
+  body{margin:0;background:#E5E7E0;color:#1E1F21;
+       font-family:"Assistant","Noto Sans Hebrew","Arial Hebrew",system-ui,sans-serif;
+       font-size:16px;line-height:1.45}
+  .sheet{background:#E5E7E0;color:#1E1F21;min-height:100vh;max-width:720px;
+         margin-inline:auto;padding:0 14px 60px}
+
+  header{padding:20px 0 12px}
+  .eyebrow{font-size:11px;letter-spacing:.2em;color:#A0731C;font-weight:700;margin:0 0 6px}
+  h1{color:#1E1F21;margin:0;font-size:32px;line-height:1.05;font-weight:800;letter-spacing:-.02em}
+  h1 span{color:#0E6E68}
+  .sub{margin:8px 0 0;font-size:13.5px;color:#6E7169}
+  .hexrow{display:flex;gap:4px;margin:14px 0 4px;flex-wrap:wrap}
+  .hex{width:15px;height:17px;background:#C9CCC3;
+       clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);transition:.3s}
+  .hex.on{background:#0E6E68}
+  .count{font-size:12px;color:#6E7169;margin-top:2px}
+
+  .tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 0;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 auto;border:1px solid #C9CCC3;background:transparent;color:#4A4E52;
+       font:inherit;font-size:14px;font-weight:600;padding:7px 15px;border-radius:999px;cursor:pointer}
+  .tab[aria-selected="true"]{background:#1E1F21;border-color:#1E1F21;color:#FAFAF7}
+  .tab:focus-visible{outline:2px solid #0E6E68;outline-offset:2px}
+
+  .sec{margin-bottom:20px}
+  .sec-h{display:flex;align-items:baseline;gap:10px;padding-bottom:6px;
+         border-bottom:2px solid #1E1F21;margin-bottom:2px}
+  .sec-h h2{color:#1E1F21;margin:0;font-size:17px;font-weight:800}
+  .sec-h em{margin-inline-start:auto;font-style:normal;font-size:12px;color:#6E7169;
+            font-variant-numeric:tabular-nums}
+
+  .row{display:flex;align-items:center;gap:9px;padding:9px 2px;border-bottom:1px solid rgba(30,31,33,.16)}
+  .box{flex:0 0 auto;width:21px;height:24px;padding:0;cursor:pointer;background:#C9CCC3;border:none;
+       clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);transition:.2s}
+  .box.on{background:#0E6E68}
+  .box:focus-visible{outline:2px solid #0E6E68;outline-offset:3px}
+  .name{flex:1;min-width:0;font-size:15px;color:#1E1F21}
+  .row.done .name{color:#8A8D85;text-decoration:line-through}
+  input.qty{flex:0 0 auto;width:74px;font:inherit;font-size:13.5px;font-weight:700;text-align:center;
+            color:#1E1F21;background:#FAFAF7;padding:5px 2px;border:1px solid #C9CCC3;border-radius:7px}
+  input.qty:focus{outline:none;border-color:#0E6E68;border-width:1.5px}
+  select.who{flex:0 0 auto;max-width:96px;font:inherit;font-size:12.5px;font-weight:700;
+             color:#4A4E52;background:#FAFAF7;border:1px solid #C9CCC3;border-radius:7px;padding:5px}
+  select.who.set{color:#0E6E68;border-color:#0E6E68}
+  .del{flex:0 0 auto;border:none;background:none;color:#8A8D85;font-size:19px;line-height:1;
+       cursor:pointer;padding:2px 4px}
+
+  .addbar{display:flex;gap:6px;margin-top:9px;align-items:center}
+  .addbar input{font:inherit;font-size:14px;padding:7px 10px;color:#1E1F21;background:transparent;
+                border:1px dashed #B9BDB3;border-radius:9px}
+  .addbar input.f{flex:1;min-width:0}
+  .addbar input.q{width:78px;text-align:center}
+  .addbar input:focus{outline:none;border-style:solid;border-color:#0E6E68}
+  .addbar button{font:inherit;font-size:14px;font-weight:700;padding:8px 14px;border:none;
+                 border-radius:9px;background:#1E1F21;color:#FAFAF7;cursor:pointer}
+
+  .day{background:#FAFAF7;border:1px solid #C9CCC3;border-radius:12px;padding:14px;margin-bottom:13px}
+  .day h2{color:#1E1F21;margin:0;font-size:19px;font-weight:800}
+  .day .tag{margin:2px 0 11px;font-size:12px;letter-spacing:.13em;color:#A0731C;font-weight:700}
+  .slot{display:flex;gap:11px;padding:8px 0;border-top:1px solid rgba(30,31,33,.14)}
+  .slot time{flex:0 0 50px;font-size:13px;font-weight:800;color:#0E6E68;
+             font-variant-numeric:tabular-nums;padding-top:2px}
+  .slot strong{color:#1E1F21;display:block;font-size:15px;font-weight:700}
+  .slot small{display:block;font-size:13px;color:#6E7169;margin-top:1px}
+  p.idea{margin:0 0 9px;font-size:14px;color:#1E1F21;line-height:1.4}
+  p.idea:last-child{margin:0}
+  p.idea b{font-weight:800}
+  .split{background:#E5E7E0;border-inline-start:3px solid #A0731C;padding:8px 10px;
+         border-radius:0 8px 8px 0;margin-top:7px}
+  .split p{color:#1E1F21;margin:0 0 5px;font-size:13.5px}
+  .split p:last-child{margin:0}
+
+  footer{padding:16px 0 26px;font-size:12.5px;text-align:center;color:#6E7169}
+  footer button{font:inherit;font-size:12.5px;background:none;border:none;color:#6E7169;
+                text-decoration:underline;cursor:pointer;margin-top:8px}
+  .bar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+  .bar button{font:inherit;font-size:13px;font-weight:700;padding:7px 13px;border-radius:9px;
+              border:1px solid #C9CCC3;background:#FAFAF7;color:#4A4E52;cursor:pointer}
+  .bar button.on{background:#0E6E68;border-color:#0E6E68;color:#FAFAF7}
+  .banner{border:1px solid #A0731C;border-inline-start-width:4px;border-radius:9px;
+          padding:10px 12px;margin:0 0 14px;font-size:13.5px;color:#1E1F21;background:#FAFAF7}
+  .banner b{display:block;margin-bottom:2px}
+  textarea.dump{width:100%;height:120px;font:inherit;font-size:12px;padding:9px;margin-bottom:14px;
+                border:1px solid #C9CCC3;border-radius:9px;background:#FAFAF7;color:#1E1F21}
+  .ed{display:flex;gap:6px;align-items:center;padding:7px 0;border-top:1px solid rgba(30,31,33,.14)}
+  .ed input{font:inherit;font-size:14px;color:#1E1F21;background:#FAFAF7;
+            border:1px solid #C9CCC3;border-radius:7px;padding:6px 8px;min-width:0}
+  .ed .t{flex:0 0 62px;text-align:center;font-weight:700}
+  .ed .h{flex:1.2}
+  .ed .n{flex:1.6}
+  .ed button{flex:0 0 auto;border:none;background:none;color:#8A8D85;font-size:18px;cursor:pointer;padding:2px 5px}
+  .dayadd{font:inherit;font-size:13px;font-weight:700;margin-top:9px;padding:6px 12px;
+          border:1px dashed #B9BDB3;border-radius:8px;background:transparent;color:#4A4E52;cursor:pointer}
+  .hidden{display:none}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="sheet">
+<header>
+  <p class="eyebrow">רמת הגולן · ראשון–שלישי · 19 נפשות</p>
+  <h1>הכל <span>מוכן</span>?</h1>
+  <div class="hexrow" id="hexrow"></div>
+  <p class="count" id="count">טוען…</p>
+  <p class="sub">רשימה משותפת. אפשר לסמן, לשנות כמות, לשייך למי שקונה ולהוסיף פריטים.</p>
+</header>
+
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" data-tab="shopping">קניות</button>
+  <button class="tab" role="tab" data-tab="meat">בשר</button>
+  <button class="tab" role="tab" data-tab="gear">ציוד</button>
+  <button class="tab" role="tab" data-tab="plan">לו״ז</button>
+</div>
+
+<div id="banner" class="banner hidden"></div>
+<div class="bar" id="bar"></div>
+<textarea class="dump hidden" id="dump" readonly></textarea>
+<main id="main"></main>
+
+<footer>
+  <div id="status">טוען נתונים…</div>
+  <button id="reset">איפוס הסימונים</button>
+</footer>
+</div>
+
+<script>
+const WHO = ["","אודי","נעה","איתמר","דליה וישראל","נקנה"];
+
+const DATA = {
+  shopping:[
+    {t:"ירקות",items:["מלפפונים|2 ק״ג","עגבניות|2 ק״ג","בצל|2 ק״ג","פלפלים|1.5 ק״ג","חסה|3","כרוב לבן|2","תפוחי אדמה|3 ק״ג","תירס בקלחים|12","לימונים|8","פטרוזיליה|2 צרורות","שום|ראש"]},
+    {t:"לחם",items:["לחמניות המבורגר|20","פיתות|25","לחמניות לצהריים|30","לחם פרוס|2"]},
+    {t:"בקרים",items:["קורנפלקס גדול|2","קורנפלקס שוקולד|2","ביצים|36","חמאה|2","גבינה לבנה|4","גבינה צהובה|750 גרם","קוטג׳|4","שמנת מתוקה|1","ריבה|1","ממרח שוקולד|1","זיתים|2"]},
+    {t:"קפה ושתייה חמה",items:["נס קפה|צנצנת גדולה","קפה שחור/טורקי|500 גרם","קפסולות|1 חבילה","תה|1","סוכר|1 ק״ג","ממתיק|1","חלב עמיד|10 ליטר"]},
+    {t:"צהריים ושימורים",items:["טונה|8","תירס משומר|4","חומוס בקופסה|4","סרדינים|2","פסטה|1.5 ק״ג","רוטב עגבניות|3","פסטו|1","אורז|1.5 ק״ג","רסק לשקשוקה|3"]},
+    {t:"רטבים ותבלינים",items:["חומוס טרי|2 גדולים","טחינה גולמית|1","קטשופ|2","חרדל|1","מיונז|2","רוטב ברביקיו|2","חריף/סחוג|1","חמוצים|3","שמן זית|1","חומץ|1","מלח גס|1","פלפל שחור|1","פפריקה|1","תערובת לגריל|1"]},
+    {t:"שתייה",items:["מים 1.5 ליטר|18","ג׳ריקן 10 ליטר|2","בירה|30","אפרול|1 בקבוק","סודה 1.5 ליטר|6","יין|2","שתייה קלה|6","מיץ לילדים|4"]},
+    {t:"חד״פ וניקיון",items:["צלחות גדולות|90","צלחות קטנות|60","כוסות|120","כוסות חמות|60","סכו״ם|100","מפיות|3","מפות שולחן|6","שקיות זבל|גליל","נייר כסף רחב|2","תבניות אלומיניום|8","נייר סופג|4","מגבונים|3","סבון כלים וספוגים|1"]},
+    {t:"גריל",items:["פחמים|2 שקים","מצתים|2","נוזל הצתה|1","מברשת ניקוי|1"]}
+  ],
+  meat:[
+    {t:"ערב א׳ — המבורגרים וכנפיים",items:["המבורגרים|2.5 ק״ג","כנפי עוף|2.5 ק״ג","נקניקיות|0.5 ק״ג"]},
+    {t:"ערב ב׳ — סטייקים ופרגיות",items:["אנטריקוט/סינטה|2.5 ק״ג","פרגיות|2.5 ק״ג","קבב|0.5 ק״ג"]},
+    {t:"לוגיסטיקה",items:["צידנית גדולה וקרחונים|1","הפשרה בבוקר של אותו ערב|—","קופסאות אטומות|—"]}
+  ],
+  gear:[
+    {t:"טיולים ומים",items:["נעלי מים|לכל אחד","כובעים|לכל אחד","קרם הגנה 50|3","בגדי ים|—","מגבות מהירות ייבוש|—","תרמילים|4","שקיות אטומות לטלפון|6","בקבוק אישי|לכל אחד","דוחה יתושים|2","כפכפים|—"]},
+    {t:"גריל ומטבח",items:["מנגל — לוודא מול הווילה|1","שיפודים ומלקחיים|—","סכין חדה וקרש חיתוך|—","קערות סלט גדולות|3","מגשי הגשה|3","פותחן|2","קומקום/פינג׳אן|1","שקיות זיפ-לוק|—","צידנית קטנה לטיולים|1"]},
+    {t:"משחקים ופעילות",items:["מיקרופון קריוקי אלחוטי|2","משחקי קופסה וקלפים|—","טאבו/מוקד|1","מטקות וכדור|—","אקדחי מים|4","בלונים|חבילה","מרשמלו ושיפודים|—","סדין לבן ומקרן|—"]},
+    {t:"כללי",items:["מאריך חשמל ומפצל|2","פנסי ראש|3","מטענים ומטען נייד|—","רמקול נייד|1","כיסאות מתקפלים|6","שקיות לכביסה|—","ת״ז וכרטיסי קופ״ח|—","חוזה הווילה וטלפון בעלים|—"]}
+  ]
+};
+
+const PLAN=[
+ {d:"יום א׳",tag:"הגעה · יום רגוע",slots:[
+  {t:"13:00",h:"הגעה לווילה",s:"פריקה, חלוקת חדרים, הבשר ישר למקרר"},
+  {t:"14:00",h:"צהריים קל",s:"לחמניות, טונה, סלט — בלי בישול ביום הראשון"},
+  {t:"15:00",h:"בריכה ומנוחה",s:"השעות החמות. לא יוצאים לשום מקום"},
+  {t:"18:00",h:"הדלקת הגריל",s:"שני אחראים: אחד על הפחמים, אחד על הסלטים"},
+  {t:"19:30",h:"על האש #1",s:"המבורגרים, כנפיים, נקניקיות לקטנים"}]},
+ {d:"יום ב׳",tag:"היום הגדול · טיול מים",slots:[
+  {t:"06:45",h:"קפה וחביתות",s:"מוקדם. באוגוסט כל שעה אחרי 9:00 עולה שלוש מעלות"},
+  {t:"07:30",h:"יציאה בשתי קבוצות",s:"",split:[
+    "<b>קבוצה חזקה</b> (מבוגרים ובני 8–18): בריכת המשושים או נחל זוויתן התחתון. ירידה כ-30 דקות, העלייה חזרה תלולה בחום.",
+    "<b>קבוצה קלה</b> (דליה וישראל, התינוק, בני 3–5): מפלי סער, 10 דקות הליכה מהחניה. חלופה: המסלול הנגיש בבניאס, או אגם רם והר בנטל."]},
+  {t:"12:30",h:"מפגש לצהריים",s:"פיקניק בצל — לחמניות, שימורים, ירקות"},
+  {t:"14:00",h:"חזרה ומנוחה",s:"מקלחות, שינה לקטנים, בריכה"},
+  {t:"17:00",h:"מפעל השוקולד דה קרינה, עין זיוון",s:"ממוזג וקצר. אופציונלי"},
+  {t:"19:30",h:"על האש #2",s:"סטייקים ופרגיות. הסטייקים אחרונים ובשליטה של אדם אחד"}]},
+ {d:"יום ג׳",tag:"יציאה",slots:[
+  {t:"07:30",h:"בוקר חיסול",s:"מחסלים ביצים, גבינות ולחם — לא לוקחים הביתה"},
+  {t:"09:00",h:"אריזה",s:"כל משפחה על החדר שלה, סבב אחרון בסלון ובחצר"},
+  {t:"10:30",h:"צ׳ק אאוט",s:"לצלם את הווילה לפני שיוצאים"},
+  {t:"11:00",h:"עצירה בדרך",s:"חוף כנרת (דוגה או גופרה), או קצרין העתיקה אם מעדיפים צל"},
+  {t:"13:30",h:"נסיעה הביתה",s:""}]}
+];
+
+const IDEAS=[
+ {k:"ערב א׳",v:[
+  "<b>קריוקי בחצר</b> — רמקול, מסך או טלפון, ופלייליסט שמתחיל בזוהר ארגוב ונגמר בנוער. הילדים הקטנים פותחים, המתבגרים נשברים בסוף.",
+  "<b>מי מכיר את דליה וישראל</b> — עשר שאלות על ההורים (איפה נפגשו, מה היה הרכב הראשון), כל משפחה עונה על דף. סבא וסבתא שופטים.",
+  "<b>מרשמלו על הגחלים</b> — אחרי שהמנגל נגמר, כשעדיין חם."]},
+ {k:"ערב ב׳",v:[
+  "<b>הקרנה בחוץ</b> — סדין לבן על הקיר ומקרן קטן, או פשוט לפטופ. סרט אחד שכולם מסכימים עליו.",
+  "<b>טורניר טאבו דור מול דור</b> — זוגות מעורבים, מבוגר וילד. משווה את הפערים ומצחיק.",
+  "<b>הקלטת סבא וסבתא</b> — מישהו מכוון טלפון ושואל איך נפגשו. בעוד עשר שנים זה הדבר היחיד שתשמחו שעשיתם."]},
+ {k:"שעות חום",v:[
+  "<b>ציד אוצרות בווילה</b> — הגדולים מחביאים ומכינים רמזים, הקטנים מחפשים. קונה לכם 40 דקות שקט.",
+  "<b>קרב מים בבריכה</b> — אקדחי מים ובלונים, בשעה הכי חמה של היום.",
+  "<b>אולימפיאדת המשפחה</b> — חמש תחנות בחצר, קבוצות מעורבות בגילאים. מדליות מנייר כסף."]},
+ {k:"מתישהו",v:[
+  "<b>תמונה משפחתית בשקיעה</b> — ביום השני, כולם לבושים דומה בגוון אחד. טיימר על אבן.",
+  "<b>משחקי קופסה</b> — רמיקוב לסבתא, קטאן או דיקסיט לגדולים."]}
+];
+
+let state = {checks:{},qty:{},custom:{},removed:[],plan:null};
+let tab = "shopping", editing = false;
+const planData = () => state.plan || PLAN;
+function editablePlan(){ if(!state.plan) state.plan=JSON.parse(JSON.stringify(PLAN)); return state.plan; }
+
+let deb;
+const debSave = () => { clearTimeout(deb); deb = setTimeout(save, 500); };
+const $ = q => document.querySelector(q);
+const esc = s => (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+
+function sections(key){
+  const base=(DATA[key]||[]).map(s=>({t:s.t,items:s.items.map(str=>{
+    const [n,q]=str.split("|");
+    return {key:key+"|"+s.t+"|"+n, name:n, qty:q||""};
+  }).filter(o=>!(state.removed||[]).includes(o.key))}));
+  
+  ((state.custom&&state.custom[key])||[]).forEach(c=>{
+    let sec=base.find(s=>s.t===c.sec);
+    if(!sec){sec={t:c.sec,items:[]};base.push(sec);}
+    if(!(state.removed||[]).includes(c.key)) sec.items.push({key:c.key,name:c.name,qty:c.qty||""});
+  });
+  return base;
+}
+
+function totals(){
+  let d=0,a=0;
+  ["shopping","meat","gear"].forEach(k=>sections(k).forEach(s=>s.items.forEach(i=>{
+    a++;
+    if(state.checks&&state.checks[i.key]&&state.checks[i.key].d) d++;
+  })));
+  return{d,a};
+}
+
+function initFirebaseSync() {
+  if (!dbRef) {
+    $("#status").textContent = "מצב מקומי בלבד";
+    return;
+  }
+  
+  dbRef.on("value", (snapshot) => {
+    const val = snapshot.val();
+    if (val) {
+      state = {
+        checks: val.checks || {},
+        qty: val.qty || {},
+        custom: val.custom || {},
+        removed: val.removed || [],
+        plan: val.plan || null
+      };
+    }
+    $("#status").textContent = "מסונכרן בזמן אמת";
+    render();
+  }, (err) => {
+    $("#status").textContent = "שגיאת תקשורת עם הענן";
+  });
+}
+
+function save() {
+  if (!dbRef) return;
+  $("#status").textContent = "שומר...";
+  dbRef.set(state).then(() => {
+    $("#status").textContent = "מסונכרן בזמן אמת";
+  }).catch(() => {
+    $("#status").textContent = "שגיאה בשמירה";
+  });
+}
+
+function toolbar() {
+  const b=$("#bar");
+  b.innerHTML = (tab==="plan"
+    ? `<button data-act="edit" class="${editing?"on":""}">${editing?"סיום עריכה":"עריכת הלו״ז"}</button>
+       <button data-act="copy">העתקת הלו״ז</button>
+       ${state.plan?`<button data-act="resetplan">שחזור הלו״ז המקורי</button>`:""}`
+    : `<button data-act="copy">העתקה לוואטסאפ</button>
+       <button data-act="copyleft">העתקת מה שנשאר</button>`);
+}
+
+function render(){
+  document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===tab));
+  toolbar();
+  $("#main").innerHTML = tab==="plan"?(editing?planEditHTML():planHTML()):listHTML(tab);
+  const {d,a}=totals(), N=28, f=a?Math.round(d/a*N):0;
+  $("#hexrow").innerHTML=Array.from({length:N},(_,i)=>`<div class="hex ${i<f?"on":""}"></div>`).join("");
+  $("#count").textContent=`${d} מתוך ${a} פריטים סומנו`;
+}
+
+function planHTML(){
+  return planData().map(d=>`<article class="day"><h2>${d.d}</h2><p class="tag">${d.tag}</p>
+    ${d.slots.map(s=>`<div class="slot"><time>${s.t}</time><div><strong>${s.h}</strong>
+      ${s.s?`<small>${s.s}</small>`:""}
+      ${s.split?`<div class="split">${s.split.map(p=>`<p>${p}</p>`).join("")}</div>`:""}
+    </div></div>`).join("")}</article>`).join("")+
+  `<article class="day"><h2>לזכור</h2><p class="tag">חום · תינוק · שמורות</p>
+    <div class="slot"><time>חום</time><div><small>אוגוסט בגולן 33–36 מעלות. כל טיול נגמר עד 12:30, ואחר כך צל ומים.</small></div></div>
+    <div class="slot"><time>מים</time><div><small>בקבוק אישי לכל אחד ביציאה, וג׳ריקן קר ברכב לחזרה.</small></div></div>
+    <div class="slot"><time>שמורות</time><div><small>כניסה אחרונה ברוב השמורות 16:00, סגירה 17:00.</small></div></div>
+  </article>
+  <article class="day"><h2>רעיונות לערבים ולשעות המתות</h2><p class="tag">לא חובה · לבחור מה שמתאים</p>
+    ${IDEAS.map(g=>`<div class="slot"><time>${g.k}</time><div>
+      ${g.v.map(x=>`<p class="idea">${x}</p>`).join("")}</div></div>`).join("")}
+  </article>`;
+}
+
+function listHTML(key){
+  return sections(key).map(s=>{
+    const d=s.items.filter(i=>state.checks[i.key]&&state.checks[i.key].d).length;
+    return `<section class="sec">
+      <div class="sec-h"><h2>${s.t}</h2><em>${d}/${s.items.length}</em></div>
+      ${s.items.map(it=>{
+        const c=state.checks[it.key]||{}, q=(state.qty[it.key]!==undefined?state.qty[it.key]:it.qty);
+        return `<div class="row ${c.d?"done":""}">
+          <button class="box ${c.d?"on":""}" data-k="${esc(it.key)}" aria-label="סמן ${esc(it.name)}"></button>
+          <span class="name">${it.name}</span>
+          <input class="qty" value="${esc(q)}" data-q="${esc(it.key)}" aria-label="כמות של ${esc(it.name)}">
+          <select class="who ${c.w?"set":""}" data-w="${esc(it.key)}">
+            ${WHO.map(w=>`<option value="${w}" ${c.w===w?"selected":""}>${w||"מי מביא"}</option>`).join("")}
+          </select>
+          <button class="del" data-x="${esc(it.key)}" aria-label="מחק">×</button>
+        </div>`;}).join("")}
+      <div class="addbar">
+        <input class="f" placeholder="פריט חדש" data-add="${esc(key+"::"+s.t)}">
+        <input class="q" placeholder="כמות" data-addq="${esc(key+"::"+s.t)}">
+        <button data-addbtn="${esc(key+"::"+s.t)}">הוסף</button>
+      </div></section>`;}).join("");
+}
+
+function planEditHTML(){
+  return planData().map((d,di)=>`<article class="day">
+    <div class="ed"><input class="h" value="${esc(d.d)}" data-pl="${di},-,d" aria-label="שם היום">
+      <input class="n" value="${esc(d.tag)}" data-pl="${di},-,tag" aria-label="כותרת משנה">
+      <button data-delday="${di}" aria-label="מחק יום">×</button></div>
+    ${d.slots.map((s,si)=>`<div class="ed">
+      <input class="t" value="${esc(s.t)}" data-pl="${di},${si},t" aria-label="שעה">
+      <input class="h" value="${esc(s.h)}" data-pl="${di},${si},h" aria-label="פעילות">
+      <input class="n" value="${esc(s.s||"")}" data-pl="${di},${si},s" aria-label="פירוט">
+      <button data-delslot="${di},${si}" aria-label="מחק שורה">×</button></div>`).join("")}
+    <button class="dayadd" data-addslot="${di}">הוספת שורה</button>
+  </article>`).join("")+`<button class="dayadd" data-addday="1">הוספת יום</button>`;
+}
+
+function asText(){
+  const L=[];
+  if(tab==="plan"){
+    L.push("*גולן — לוח זמנים*","");
+    planData().forEach(d=>{L.push("*"+d.d+"* — "+d.tag);
+      d.slots.forEach(s=>L.push(s.t+"  "+s.h+(s.s?" — "+s.s:"")));L.push("");});
+    L.push("*רעיונות לערבים*","");
+    IDEAS.forEach(g=>{L.push("_"+g.k+"_");
+      g.v.forEach(x=>L.push("• "+x.replace(/<[^>]+>/g,"")));L.push("");});
+    return L.join("\n");
+  }
+  const label={shopping:"קניות",meat:"בשר",gear:"ציוד"}[tab];
+  L.push("*גולן — "+label+"*","");
+  sections(tab).forEach(s=>{
+    const rows=s.items.filter(i=>!onlyLeft||!(state.checks[i.key]&&state.checks[i.key].d));
+    if(!rows.length)return;
+    L.push("*"+s.t+"*");
+    rows.forEach(i=>{
+      const c=state.checks[i.key]||{},q=(state.qty[i.key]!==undefined?state.qty[i.key]:i.qty);
+      L.push((c.d?"✅ ":"▫️ ")+i.name+(q&&q!=="—"?" — "+q:"")+(c.w&&c.w!=="נקנה"?"  ("+c.w+")":""));
+    });
+    L.push("");
+  });
+  return L.join("\n");
+}
+
+let onlyLeft=false;
+async function copyOut(){
+  const txt=asText();
+  try{ await navigator.clipboard.writeText(txt); $("#status").textContent="הועתק — אפשר להדביק בוואטסאפ"; $("#dump").classList.add("hidden"); }
+  catch(e){ const d=$("#dump"); d.value=txt; d.classList.remove("hidden"); d.select(); $("#status").textContent="סמנו והעתיקו ידנית"; }
+}
+
+document.addEventListener("click",e=>{
+  const act=e.target.closest("[data-act]");
+  if(act){
+    const a=act.dataset.act;
+    if(a==="edit"){editing=!editing;render();}
+    if(a==="copy"){onlyLeft=false;copyOut();}
+    if(a==="copyleft"){onlyLeft=true;copyOut();}
+    if(a==="resetplan"&&confirm("לשחזור את הלו״ז המקורי? כל השינויים שלכם יימחקו.")){state.plan=null;render();save();}
+    return;
+  }
+  const as=e.target.closest("[data-addslot]");
+  if(as){const p=editablePlan();p[as.dataset.addslot].slots.push({t:"",h:"",s:""});render();save();return;}
+  const ad=e.target.closest("[data-addday]");
+  if(ad){editablePlan().push({d:"יום חדש",tag:"",slots:[{t:"",h:"",s:""}]});render();save();return;}
+  const ds=e.target.closest("[data-delslot]");
+  if(ds){const [a,b]=ds.dataset.delslot.split(",");editablePlan()[a].slots.splice(b,1);render();save();return;}
+  const dd=e.target.closest("[data-delday]");
+  if(dd&&confirm("למחוק את היום הזה מהלו״ז?")){editablePlan().splice(dd.dataset.delday,1);render();save();return;}
+
+  const t=e.target.closest("[data-tab]");
+  if(t){tab=t.dataset.tab;render();window.scrollTo(0,0);return;}
+  const b=e.target.closest("[data-k]");
+  if(b){
+    const k=b.dataset.k;
+    state.checks[k]=Object.assign({},state.checks[k],{d:!(state.checks[k]&&state.checks[k].d)});
+    render();save();return;
+  }
+  const x=e.target.closest("[data-x]");
+  if(x){
+    if(!state.removed) state.removed=[];
+    if(!state.removed.includes(x.dataset.x))state.removed.push(x.dataset.x);
+    render();save();return;
+  }
+  const a=e.target.closest("[data-addbtn]");
+  if(a){
+    const [key,sec]=a.dataset.addbtn.split("::");
+    const i=document.querySelector(`[data-add="${CSS.escape(key+"::"+sec)}"]`);
+    const iq=document.querySelector(`[data-addq="${CSS.escape(key+"::"+sec)}"]`);
+    const v=i.value.trim(); if(!v)return;
+    state.custom[key]=state.custom[key]||[];
+    state.custom[key].push({sec,name:v,qty:iq.value.trim()||"1",key:key+"|"+sec+"|"+v+"|"+Date.now()});
+    i.value="";iq.value="";render();save();return;
+  }
+  if(e.target.id==="reset"&&confirm("לנקות את כל הסימונים והשיוכים? הכמויות והפריטים שהוספתם יישארו."))
+    {state.checks={};render();save();}
+});
+
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.dataset.pl){
+    const [di,si,f]=t.dataset.pl.split(",");
+    const p=editablePlan();
+    if(si==="-") p[di][f]=t.value; else p[di].slots[si][f]=t.value;
+    debSave(); return;
+  }
+  if(t.dataset.q){ state.qty[t.dataset.q]=t.value.trim(); debSave(); }
+});
+
+document.addEventListener("change",e=>{
+  const w=e.target.closest("[data-w]");
+  if(w){state.checks[w.dataset.w]=Object.assign({},state.checks[w.dataset.w],{w:w.value});render();save();return;}
+  const q=e.target.closest("[data-q]");
+  if(q){state.qty[q.dataset.q]=q.value.trim();save();}
+});
+
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Enter")return;
+  if(e.target.dataset.add||e.target.dataset.addq){
+    const s=e.target.dataset.add||e.target.dataset.addq;
+    document.querySelector(`[data-addbtn="${CSS.escape(s)}"]`).click();
+  } else if(e.target.dataset.q){ e.target.blur(); }
+});
+
+render(); 
+initFirebaseSync();
+</script>
+</body>
+</html>
