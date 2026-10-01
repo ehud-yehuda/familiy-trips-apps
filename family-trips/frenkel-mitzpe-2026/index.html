@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>שבת במצפה רמון - חוות בית הזית</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Rubik', sans-serif; }
+  </style>
+</head>
+<body class="bg-amber-50/40 text-slate-800 min-h-screen pb-24">
+
+  <!-- Header -->
+  <header class="bg-amber-800 text-white p-4 shadow-md sticky top-0 z-50">
+    <div class="max-w-md mx-auto flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-bold tracking-tight">🕯️ שבת במצפה רמון</h1>
+        <p class="text-xs text-amber-200 mt-0.5">חוות בית הזית • פישר-כהן & בנדה-פרנקל</p>
+      </div>
+      <div id="status-indicator" class="flex items-center gap-1.5 bg-amber-950/60 px-2.5 py-1 rounded-full text-[10px] text-amber-200 border border-amber-700">
+        <span id="status-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span id="status-text">פעיל</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="max-w-md mx-auto px-4 mt-3">
+    <div class="grid grid-cols-3 gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 text-center text-xs font-bold">
+      <button onclick="switchTab('menu')" id="tab-menu" class="py-2.5 rounded-lg bg-amber-800 text-white transition-colors">📜 תפריט שבת</button>
+      <button onclick="switchTab('food')" id="tab-food" class="py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">🥘 מצרכים ואוכל</button>
+      <button onclick="switchTab('gear')" id="tab-gear" class="py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">🎒 ציוד ושבת</button>
+    </div>
+  </div>
+
+  <main class="max-w-md mx-auto px-4 mt-3 space-y-4">
+
+    <!-- ==================== TAB 1: MENU ==================== -->
+    <section id="view-menu" class="space-y-4">
+      <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+        <details class="text-xs">
+          <summary class="font-bold text-amber-800 cursor-pointer py-1">➕ הוספת מנה / פריט לתפריט</summary>
+          <form onsubmit="addMenuItem(event)" class="mt-2 space-y-2">
+            <div class="flex gap-2">
+              <select id="menu-meal" class="border border-slate-300 rounded-lg px-2 py-1.5 text-xs bg-white w-1/2 font-medium">
+                <option value="friday_dinner">🍷 סעודת ליל שבת</option>
+                <option value="saturday_breakfast">☕ בוקר וקידושא רבא</option>
+                <option value="saturday_lunch">🍲 סעודת יום (צהריים)</option>
+              </select>
+              <input id="menu-title" type="text" placeholder="כותרת המנה" class="border border-slate-300 rounded-lg px-2 py-1.5 text-xs w-1/2 focus:ring-2 focus:ring-amber-500 focus:outline-none" required>
+            </div>
+            <textarea id="menu-desc" placeholder="פירוט המנה או הרכיבים..." class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none" rows="2" required></textarea>
+            <button type="submit" class="w-full bg-amber-800 text-white py-1.5 rounded-lg text-xs font-bold hover:bg-amber-900">+ הוסף לתפריט</button>
+          </form>
+        </details>
+      </div>
+
+      <!-- ליל שבת -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border-r-4 border-amber-700">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="font-bold text-slate-900 text-sm">🍷 סעודת ליל שבת</h2>
+          <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded">ערב</span>
+        </div>
+        <div id="menu-list-friday_dinner" class="space-y-2.5"></div>
+      </div>
+
+      <!-- בוקר שבת -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border-r-4 border-yellow-600">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="font-bold text-slate-900 text-sm">☕ קידושא רבא ובוקר</h2>
+          <span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded">בוקר</span>
+        </div>
+        <div id="menu-list-saturday_breakfast" class="space-y-2.5"></div>
+      </div>
+
+      <!-- צהרי שבת -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border-r-4 border-orange-700">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="font-bold text-slate-900 text-sm">🍲 סעודת יום שבת (צהריים)</h2>
+          <span class="bg-orange-100 text-orange-800 text-[10px] font-bold px-2 py-0.5 rounded">צהריים</span>
+        </div>
+        <div id="menu-list-saturday_lunch" class="space-y-2.5"></div>
+      </div>
+
+      <div class="text-center">
+        <button onclick="resetMenuDefaults()" class="text-[11px] text-slate-400 hover:text-amber-800 underline">איפוס תפריט לברירת מחדל</button>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: FOOD LIST (כל מצרך בשורה נפרדת) ==================== -->
+    <section id="view-food" class="hidden space-y-3">
+      <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+        <form onsubmit="addFoodItem(event)" class="space-y-2">
+          <div class="flex gap-2">
+            <input id="food-input" type="text" placeholder="שם המצרך..." class="flex-1 border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none" required>
+            <input id="food-qty" type="text" placeholder="כמות" class="w-1/3 border border-slate-300 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none" required>
+          </div>
+          <div class="flex gap-2">
+            <select id="food-assignee" class="flex-1 border border-slate-300 rounded-lg px-2 py-1.5 text-xs bg-white font-medium">
+              <option value="קנייה">🛒 קנייה</option>
+              <option value="טרם שובץ">טרם שובץ</option>
+              <option value="פישר-כהן">פישר-כהן</option>
+              <option value="בנדה-פרנקל">בנדה-פרנקל</option>
+            </select>
+            <button type="submit" class="bg-amber-800 text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-900">+ הוסף מצרך</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="flex items-center justify-between text-[11px] text-slate-500 px-1">
+        <span>כל מצרך בשורה נפרדת • עריכת כמות ישירה בתיבה</span>
+        <button onclick="resetFoodDefaults()" class="text-amber-800 underline font-semibold">איפוס מצרכים מלא</button>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <ul id="food-list" class="divide-y divide-slate-100 text-xs"></ul>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: GEAR LIST ==================== -->
+    <section id="view-gear" class="hidden space-y-3">
+      <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+        <form onsubmit="addGearItem(event)" class="space-y-2">
+          <div class="flex gap-2">
+            <input id="gear-input" type="text" placeholder="פריט ציוד..." class="flex-1 border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none" required>
+            <input id="gear-qty" type="text" placeholder="כמות" class="w-1/3 border border-slate-300 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none" required>
+          </div>
+          <div class="flex gap-2">
+            <select id="gear-assignee" class="flex-1 border border-slate-300 rounded-lg px-2 py-1.5 text-xs bg-white font-medium">
+              <option value="טרם שובץ">טרם שובץ</option>
+              <option value="פישר-כהן">פישר-כהן</option>
+              <option value="בנדה-פרנקל">בנדה-פרנקל</option>
+            </select>
+            <button type="submit" class="bg-amber-800 text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-900">+ הוסף ציוד</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="flex items-center justify-between text-[11px] text-slate-500 px-1">
+        <span>ציוד שבת ומדבר • עריכת כמות ישירה • עריכת שם ב-✏️</span>
+        <button onclick="resetGearDefaults()" class="text-amber-800 underline font-semibold">איפוס ציוד מלא</button>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <ul id="gear-list" class="divide-y divide-slate-100 text-xs"></ul>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+	// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+	const firebaseConfig = {
+	  apiKey: "AIzaSyCf5swfGHgCocFeBPT8nmrx_pgCQr_InD4",
+	  authDomain: "carmel--trip.firebaseapp.com",
+	  databaseURL: "https://carmel--trip-default-rtdb.firebaseio.com",
+	  projectId: "carmel--trip",
+	  storageBucket: "carmel--trip.firebasestorage.app",
+	  messagingSenderId: "799100537624",
+	  appId: "1:799100537624:web:fef75dbf131720d0ccac6d",
+	  measurementId: "G-Y9H92G303G"
+	};
+
+    let db = null;
+    const isFirebaseConfigured = !firebaseConfig.apiKey.includes("YOUR_API_KEY");
+
+    if (isFirebaseConfigured) {
+      try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        document.getElementById('status-text').innerText = "ענן מסונכרן";
+      } catch (err) {
+        console.warn("שגיאה ב-Firebase", err);
+      }
+    } else {
+      document.getElementById('status-text').innerText = "מצב מקומי";
+    }
+
+    // תפריט
+    const defaultMenu = [
+      { id: "m1", meal: "friday_dinner", title: "קידוש, יין וחלות", desc: "יין משובח, 3 חלות טריות ומטבלים (ללא סלטים חיים בערב)." },
+      { id: "m2", meal: "friday_dinner", title: "מטפונה עוף עסיסית בגחלים", desc: "עוף אחד שלם עם בזיליקום, שום, בירה לבנה, פטריות, בצל, קישואים, קולורבי ואורז מוכן." },
+      { id: "m3", meal: "friday_dinner", title: "פויקה עוף קוקטייל, קארי וניוקי", desc: "עוף בקרם קוקוס, קארי, יין לבן, ערמונים קלופים וניוקי נימוח." },
+      { id: "m4", meal: "friday_dinner", title: "פינוקי לילה במדבר", desc: "פיצוחים, עוגות, פירות ותה חם מול שמי המדבר." },
+
+      { id: "m5", meal: "saturday_breakfast", title: "שתייה חמה וקורנפלקס", desc: "מים חמים מהמיחם, קפה, תה, קופסת קורנפלקס, חלב ועוגות בוקר." },
+      { id: "m6", meal: "saturday_breakfast", title: "דליקטס וגבינות (ללא לחם)", desc: "קופסת דג מלוח (הרינג/מטיאס), חבילת קרקרים ומבחר גבינות." },
+
+      { id: "m7", meal: "saturday_lunch", title: "סיר צ'ולנט מסורתי ענק", desc: "בשר בקר/אסאדו, שעועית, חומוס, שפע תפוחי אדמה, חיטה, 10 ביצים קשות חומות וקישקע." },
+      { id: "m8", meal: "saturday_lunch", title: "שאריות חמות מערב שבת", desc: "שאריות המטפונה ופויקה העוף מחוממים על הפלטה." },
+      { id: "m9", meal: "saturday_lunch", title: "סלטים רעננים ופירות לצהריים", desc: "סלט ירקות קצוץ טרי, סלט חסה/כרוב עשיר, חמוצים, אבטיח ומלון קר." }
+    ];
+
+    // רשימת מצרכים מופרדת לחלוטין - כל פריט בשורה משלו!
+    const initialFood = [
+      // יין, חלות וקדושה
+      { id: "rf1", name: "יין אדום יבש (לקידוש ולסעודה)", qty: "2 בקבוקים", assignee: "קנייה", done: false },
+      { id: "rf2", name: "יין מתוק לקידוש", qty: "1 בקבוק", assignee: "קנייה", done: false },
+      { id: "rf3", name: "מיץ ענבים תירוש לילדים", qty: "2 בקבוקים", assignee: "קנייה", done: false },
+      { id: "rf4", name: "חלות טריות לשבת", qty: "3 חלות", assignee: "קנייה", done: false },
+      { id: "rf5", name: "לחמניות לילדים", qty: "6 לחמניות", assignee: "קנייה", done: false },
+      { id: "rf6", name: "נרות שבת", qty: "1 חבילה", assignee: "קנייה", done: false },
+      { id: "rf7", name: "גפרורים / מצית", qty: "1 יח'", assignee: "קנייה", done: false },
+
+      // מטפונה - עוף וירקות מופרדים
+      { id: "rf8", name: "עוף שלם נקי (למטפונה)", qty: "1 יח'", assignee: "קנייה", done: false },
+      { id: "rf9", name: "צרור בזיליקום טרי", qty: "1 צרור", assignee: "קנייה", done: false },
+      { id: "rf10", name: "ראש שום שלם", qty: "1 ראש", assignee: "קנייה", done: false },
+      { id: "rf11", name: "פחית בירה לבנה", qty: "1 פחית", assignee: "קנייה", done: false },
+      { id: "rf12", name: "פטריות טריות (שמפיניון/פורטובלו)", qty: "1 סלסלה", assignee: "קנייה", done: false },
+      { id: "rf13", name: "בצל יבש למטפונה", qty: "2 יח'", assignee: "קנייה", done: false },
+      { id: "rf14", name: "קישואים", qty: "2 יח'", assignee: "קנייה", done: false },
+      { id: "rf15", name: "קולורבי", qty: "2 יח'", assignee: "קנייה", done: false },
+      { id: "rf16", name: "אורז מבושל מראש (להביא בקופסה מהבית)", qty: "1 קופסה", assignee: "קנייה", done: false },
+      { id: "rf17", name: "גליל נייר אפייה", qty: "1 גליל", assignee: "קנייה", done: false },
+      { id: "rf18", name: "גליל נייר כסף עבה ייעודי לגחלים", qty: "1 גליל", assignee: "קנייה", done: false },
+
+      // פויקה עוף קוקוס קארי - מופרד
+      { id: "rf19", name: "עוף לפויקה (שוקיים / כרעיים / פרגיות)", qty: "1.5 ק\"ג", assignee: "קנייה", done: false },
+      { id: "rf20", name: "קרם קוקוס (פחית / קרטון)", qty: "1 פחית", assignee: "קנייה", done: false },
+      { id: "rf21", name: "מחית / אבקת קארי", qty: "1 צנצנת/שקית", assignee: "קנייה", done: false },
+      { id: "rf22", name: "יין לבן יבש (לבישול ולשתייה)", qty: "1 בקבוק", assignee: "קנייה", done: false },
+      { id: "rf23", name: "ערמונים קלופים בוואקום", qty: "2 חבילות", assignee: "קנייה", done: false },
+      { id: "rf24", name: "חבילת ניוקי", qty: "1 חבילה", assignee: "קנייה", done: false },
+      { id: "rf25", name: "בצל לפויקה", qty: "2 יח'", assignee: "קנייה", done: false },
+      { id: "rf26", name: "שיני שום קלופות", qty: "6 שיניים", assignee: "קנייה", done: false },
+      { id: "rf27", name: "שורש ג'ינג'ר טרי", qty: "1 חתיכה", assignee: "קנייה", done: false },
+
+      // שבת בוקר - מופרד
+      { id: "rf28", name: "דג מלוח (הרינג / מטיאס בשמן)", qty: "1 קופסה", assignee: "קנייה", done: false },
+      { id: "rf29", name: "חבילת קרקרים איכותיים (ללא לחם)", qty: "1 חבילה", assignee: "קנייה", done: false },
+      { id: "rf30", name: "גבינה לבנה / קוטג'", qty: "2 קופסאות", assignee: "קנייה", done: false },
+      { id: "rf31", name: "גבינה צהובה פרוסה", qty: "1 חבילה", assignee: "קנייה", done: false },
+      { id: "rf32", name: "גבינה מלוחה / צפתית", qty: "1 קופסה", assignee: "קנייה", done: false },
+      { id: "rf33", name: "קופסת קורנפלקס לילדים", qty: "1 קופסה", assignee: "קנייה", done: false },
+      { id: "rf34", name: "חלב (עמיד או טרי בצידנית)", qty: "3 קרטונים", assignee: "קנייה", done: false },
+      { id: "rf35", name: "עוגות בוקר בחושות לשבת", qty: "2 פסי עוגה", assignee: "קנייה", done: false },
+      { id: "rf36", name: "קפה שחור", qty: "1 שקית", assignee: "קנייה", done: false },
+      { id: "rf37", name: "נס קפה", qty: "1 צנצנת", assignee: "קנייה", done: false },
+      { id: "rf38", name: "תיונים (צמחים / רגיל)", qty: "1 קופסה", assignee: "קנייה", done: false },
+      { id: "rf39", name: "סוכר", qty: "1 שקית/קופסה", assignee: "קנייה", done: false },
+
+      // שבת צהריים - צ'ולנט מופרד
+      { id: "rf40", name: "בשר לצ'ולנט (שפונדרה / אסאדו עם עצם)", qty: "1.5 ק\"ג", assignee: "קנייה", done: false },
+      { id: "rf41", name: "שעועית מעורבת מושרית מראש", qty: "300 גרם", assignee: "קנייה", done: false },
+      { id: "rf42", name: "גרגרי חומוס מושרים מראש", qty: "300 גרם", assignee: "קנייה", done: false },
+      { id: "rf43", name: "חיטה / גריסים לצ'ולנט (שקית בישול)", qty: "1 שקית", assignee: "קנייה", done: false },
+      { id: "rf44", name: "תפוחי אדמה קטנים/בינוניים לצ'ולנט", qty: "12 יח'", assignee: "קנייה", done: false },
+      { id: "rf45", name: "ביצים שלמות (יוכנסו לסיר)", qty: "10 יח'", assignee: "קנייה", done: false },
+      { id: "rf46", name: "קישקע לצ'ולנט", qty: "2 יח'", assignee: "קנייה", done: false },
+      { id: "rf47", name: "בצל לצ'ולנט", qty: "2 יח'", assignee: "קנייה", done: false },
+      { id: "rf48", name: "סילאן לצבע ותיבול", qty: "1 צנצנת/בקבוק", assignee: "קנייה", done: false },
+
+      // סלטים לצהריים - כל ירק מופרד
+      { id: "rf49", name: "עגבניות לסלט צהריים", qty: "1.5 ק\"ג", assignee: "קנייה", done: false },
+      { id: "rf50", name: "מלפפונים לסלט צהריים", qty: "1.5 ק\"ג", assignee: "קנייה", done: false },
+      { id: "rf51", name: "פלפלים צבעוניים לסלט", qty: "4 יח'", assignee: "קנייה", done: false },
+      { id: "rf52", name: "בצל סגול לסלט", qty: "2 יח'", assignee: "קנייה", done: false },
+      { id: "rf53", name: "עלי חסה שטופים", qty: "1 שקית", assignee: "קנייה", done: false },
+      { id: "rf54", name: "כרוב קצוץ", qty: "1 שקית", assignee: "קנייה", done: false },
+      { id: "rf55", name: "חמוציות לסלט", qty: "1 חבילה", assignee: "קנייה", done: false },
+      { id: "rf56", name: "אגוזים / גרעינים קלופים לסלט", qty: "1 שקית", assignee: "קנייה", done: false },
+      { id: "rf57", name: "לימונים לסחיטה", qty: "4 יח'", assignee: "קנייה", done: false },
+      { id: "rf58", name: "שמן זית איכותי", qty: "1 בקבוק", assignee: "קנייה", done: false },
+      { id: "rf59", name: "טחינה גולמית", qty: "1 קופסה", assignee: "קנייה", done: false },
+      { id: "rf60", name: "מלפפונים חמוצים", qty: "1 קופסת שימורים", assignee: "קנייה", done: false },
+      { id: "rf61", name: "זיתים", qty: "1 קופסת שימורים", assignee: "קנייה", done: false },
+
+      // פירות, נשנושים ומתכלים
+      { id: "rf62", name: "אבטיח / מלון קר", qty: "1 גדול", assignee: "קנייה", done: false },
+      { id: "rf63", name: "פיצוחים לשבת", qty: "300 גרם", assignee: "קנייה", done: false },
+      { id: "rf64", name: "חטיפים לילדים (במבה, תפוצ'יפס, בייגלה)", qty: "4 חבילות", assignee: "קנייה", done: false },
+      { id: "rf65", name: "צלחות עמוקות ח\"פ (לצ'ולנט ולפויקה)", qty: "40 יח'", assignee: "קנייה", done: false },
+      { id: "rf66", name: "צלחות שטוחות ח\"פ", qty: "40 יח'", assignee: "קנייה", done: false },
+      { id: "rf67", name: "כוסות לשתייה קרה", qty: "50 יח'", assignee: "קנייה", done: false },
+      { id: "rf68", name: "כוסות חמות לשתייה חמה", qty: "40 יח'", assignee: "קנייה", done: false },
+      { id: "rf69", name: "סכו\"ם ח\"פ (מזלגות, כפות, סכינים)", qty: "מארז גדול", assignee: "קנייה", done: false },
+      { id: "rf70", name: "שקיות אשפה עבות", qty: "1 גליל", assignee: "קנייה", done: false },
+      { id: "rf71", name: "גלילי נייר ניגוב", qty: "2 גלילים", assignee: "קנייה", done: false },
+      { id: "rf72", name: "מגבונים לחים", qty: "3 חבילות", assignee: "קנייה", done: false },
+      { id: "rf73", name: "שישיות מים מינרליים", qty: "4 שישיות", assignee: "קנייה", done: false }
+    ];
+
+    // ציוד
+    const initialGear = [
+      { id: "rg1", name: "פלטת שבת חשמלית + שעון שבת", qty: "1 יח'", assignee: "טרם שובץ", done: false },
+      { id: "rg2", name: "מיחם מים חמים לשבת (נירוסטה)", qty: "1 יח'", assignee: "טרם שובץ", done: false },
+      { id: "rg3", name: "כבל מאריך / מפצל תקעים (לחיבור בחאן)", qty: "1 יח'", assignee: "טרם שובץ", done: false },
+      { id: "rg4", name: "כוס קידוש, צלחת וכיסוי חלות", qty: "1 סט", assignee: "טרם שובץ", done: false },
+      { id: "rg5", name: "פמוטים / כלי זכוכית עמיד לרוח לנרות שבת", qty: "2 יח'", assignee: "טרם שובץ", done: false },
+      { id: "rg6", name: "בשמים ונר להבדלה במוצאי שבת", qty: "1 סט", assignee: "טרם שובץ", done: false },
+      { id: "rg7", name: "סיר פויקה (מס' 3 או 4) + ידית הרמה", qty: "1 יח'", assignee: "טרם שובץ", done: false },
+      { id: "rg8", name: "סיר גדול לצ'ולנט (שמתאים לפלטה)", qty: "1 יח'", assignee: "טרם שובץ", done: false },
+      { id: "rg9", name: "את חפירה קטן / מעדר (למטפונה ולגחלים)", qty: "1 יח'", assignee: "טרם שובץ", done: false },
+      { id: "rg10", name: "סכין שף טובה וקרש חיתוך", qty: "1 סט", assignee: "טרם שובץ", done: false },
+      { id: "rg11", name: "כפפות חום עמידות לגחלים", qty: "1 זוג", assignee: "טרם שובץ", done: false },
+      { id: "rg12", name: "שקי שינה / שמיכות פוך חמות (לילות קרים במצפה!)", qty: "לכל ה-10", assignee: "טרם שובץ", done: false },
+      { id: "rg13", name: "צידניות גדולות + קרחומים", qty: "2-3 יח'", assignee: "טרם שובץ", done: false },
+      { id: "rg14", name: "תאורת שטח שבתית / פנסי ראש", qty: "4 יח'", assignee: "טרם שובץ", done: false },
+      { id: "rg15", name: "ערכת עזרה ראשונה ותכשיר נגד יתושים", qty: "1 ערכה", assignee: "טרם שובץ", done: false }
+    ];
+
+    const KEY_MENU = 'ramon_menu_v5_split';
+    const KEY_FOOD = 'ramon_food_v5_split';
+    const KEY_GEAR = 'ramon_gear_v5_split';
+
+    let localMenu = JSON.parse(localStorage.getItem(KEY_MENU)) || defaultMenu;
+    let localFood = JSON.parse(localStorage.getItem(KEY_FOOD)) || initialFood;
+    let localGear = JSON.parse(localStorage.getItem(KEY_GEAR)) || initialGear;
+
+    function switchTab(tabId) {
+      ['menu', 'food', 'gear'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.add('hidden');
+        document.getElementById(`tab-${t}`).className = 'py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors';
+      });
+      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+      document.getElementById(`tab-${tabId}`).className = 'py-2.5 rounded-lg bg-amber-800 text-white transition-colors';
+    }
+
+    function getBadgeClass(assignee) {
+      switch (assignee) {
+        case 'פישר-כהן': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+        case 'בנדה-פרנקל': return 'bg-purple-100 text-purple-800 border-purple-200';
+        case 'קנייה': return 'bg-amber-100 text-amber-800 border-amber-200 font-bold';
+        default: return 'bg-slate-100 text-slate-600 border-slate-200';
+      }
+    }
+
+    // --- MENU LOGIC ---
+    function renderMenu(items) {
+      ['friday_dinner', 'saturday_breakfast', 'saturday_lunch'].forEach(meal => {
+        const el = document.getElementById(`menu-list-${meal}`);
+        if (el) el.innerHTML = '';
+      });
+
+      items.forEach(item => {
+        const listEl = document.getElementById(`menu-list-${item.meal}`);
+        if (!listEl) return;
+
+        const div = document.createElement('div');
+        div.className = "p-2 rounded-lg bg-slate-50 border border-slate-200 flex justify-between items-start gap-2";
+        div.innerHTML = `
+          <div class="flex-1">
+            <span class="font-bold text-xs text-slate-900 block">${item.title}</span>
+            <p class="text-[11px] text-slate-600 mt-0.5">${item.desc}</p>
+          </div>
+          <div class="flex items-center gap-1 text-slate-400">
+            <button onclick="editMenuItem('${item.id}')" title="ערוך מנה" class="hover:text-amber-800 p-1 text-xs">✏️</button>
+            <button onclick="deleteMenuItem('${item.id}')" title="מחק מנה" class="hover:text-rose-600 p-1 text-xs">🗑️</button>
+          </div>
+        `;
+        listEl.appendChild(div);
+      });
+    }
+
+    function addMenuItem(e) {
+      e.preventDefault();
+      const meal = document.getElementById('menu-meal').value;
+      const title = document.getElementById('menu-title').value.trim();
+      const desc = document.getElementById('menu-desc').value.trim();
+      if (!title || !desc) return;
+
+      const newItem = { id: 'm_' + Date.now(), meal, title, desc };
+      if (db) {
+        db.ref('ramon_trip_app/menu/' + newItem.id).set(newItem);
+      } else {
+        localMenu.push(newItem);
+        localStorage.setItem(KEY_MENU, JSON.stringify(localMenu));
+        renderMenu(localMenu);
+      }
+      document.getElementById('menu-title').value = '';
+      document.getElementById('menu-desc').value = '';
+    }
+
+    function editMenuItem(id) {
+      const item = (db ? null : localMenu.find(i => i.id === id));
+      const oldTitle = item ? item.title : '';
+      const oldDesc = item ? item.desc : '';
+
+      const newTitle = prompt("ערוך כותרת מנה:", oldTitle);
+      if (newTitle === null) return;
+      const newDesc = prompt("ערוך פירוט מנה:", oldDesc);
+      if (newDesc === null) return;
+
+      if (db) {
+        db.ref(`ramon_trip_app/menu/${id}`).update({ title: newTitle.trim(), desc: newDesc.trim() });
+      } else {
+        if (item) {
+          item.title = newTitle.trim();
+          item.desc = newDesc.trim();
+          localStorage.setItem(KEY_MENU, JSON.stringify(localMenu));
+          renderMenu(localMenu);
+        }
+      }
+    }
+
+    function deleteMenuItem(id) {
+      if (!confirm("למחוק פריט זה מהתפריט?")) return;
+      if (db) {
+        db.ref(`ramon_trip_app/menu/${id}`).remove();
+      } else {
+        localMenu = localMenu.filter(i => i.id !== id);
+        localStorage.setItem(KEY_MENU, JSON.stringify(localMenu));
+        renderMenu(localMenu);
+      }
+    }
+
+    function resetMenuDefaults() {
+      if (!confirm("לאפס את התפריט לברירת המחדל?")) return;
+      if (db) {
+        const menuMap = {};
+        defaultMenu.forEach(item => menuMap[item.id] = item);
+        db.ref('ramon_trip_app/menu').set(menuMap);
+      } else {
+        localMenu = [...defaultMenu];
+        localStorage.setItem(KEY_MENU, JSON.stringify(localMenu));
+        renderMenu(localMenu);
+      }
+    }
+
+    // --- FOOD LOGIC ---
+    function renderFood(items) {
+      const listEl = document.getElementById('food-list');
+      listEl.innerHTML = '';
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.className = `p-3 flex items-center justify-between gap-2 ${item.done ? 'bg-slate-50 opacity-60' : ''}`;
+        const badge = getBadgeClass(item.assignee);
+
+        li.innerHTML = `
+          <div class="flex items-center gap-2 flex-1 min-w-0">
+            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleFood('${item.id}', ${!item.done})" class="rounded text-amber-800 h-4 w-4 cursor-pointer">
+            <div class="flex flex-col min-w-0 flex-1">
+              <span class="text-slate-800 font-semibold truncate ${item.done ? 'line-through text-slate-400' : ''}">${item.name}</span>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="text-[10px] text-slate-400 font-medium">כמות:</span>
+                <input type="text" value="${item.qty || '1'}" onchange="saveFoodQty('${item.id}', this.value)" 
+                  class="w-32 bg-amber-50 text-amber-900 border border-amber-300 rounded px-1.5 py-0.5 text-xs font-bold focus:ring-1 focus:ring-amber-500 focus:outline-none">
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-1">
+            <select onchange="changeFoodAssignee('${item.id}', this.value)" class="text-[11px] font-semibold rounded-lg px-2 py-1 border ${badge} focus:outline-none cursor-pointer">
+              <option value="קנייה" ${item.assignee === 'קנייה' ? 'selected' : ''}>🛒 קנייה</option>
+              <option value="טרם שובץ" ${item.assignee === 'טרם שובץ' ? 'selected' : ''}>טרם שובץ</option>
+              <option value="פישר-כהן" ${item.assignee === 'פישר-כהן' ? 'selected' : ''}>פישר-כהן</option>
+              <option value="בנדה-פרנקל" ${item.assignee === 'בנדה-פרנקל' ? 'selected' : ''}>בנדה-פרנקל</option>
+            </select>
+            <button onclick="editFoodNamePrompt('${item.id}')" title="ערוך שם מצרך" class="text-slate-400 hover:text-amber-800 p-1">✏️</button>
+            <button onclick="deleteFoodItem('${item.id}')" title="מחק מוצר" class="text-slate-400 hover:text-rose-600 p-1">🗑️</button>
+          </div>
+        `;
+        listEl.appendChild(li);
+      });
+    }
+
+    function saveFoodQty(id, newQty) {
+      if (!newQty.trim()) return;
+      if (db) {
+        db.ref(`ramon_trip_app/food/${id}/qty`).set(newQty.trim());
+      } else {
+        const item = localFood.find(i => i.id === id);
+        if (item) {
+          item.qty = newQty.trim();
+          localStorage.setItem(KEY_FOOD, JSON.stringify(localFood));
+        }
+      }
+    }
+
+    function addFoodItem(e) {
+      e.preventDefault();
+      const name = document.getElementById('food-input').value.trim();
+      const qty = document.getElementById('food-qty').value.trim() || '1 יח\'';
+      const assignee = document.getElementById('food-assignee').value;
+      if (!name) return;
+
+      const newItem = { id: 'rf_' + Date.now(), name, qty, assignee, done: false };
+      if (db) {
+        db.ref('ramon_trip_app/food/' + newItem.id).set(newItem);
+      } else {
+        localFood.unshift(newItem);
+        localStorage.setItem(KEY_FOOD, JSON.stringify(localFood));
+        renderFood(localFood);
+      }
+      document.getElementById('food-input').value = '';
+      document.getElementById('food-qty').value = '';
+    }
+
+    function editFoodNamePrompt(id) {
+      const item = (db ? null : localFood.find(i => i.id === id));
+      const oldName = item ? item.name : '';
+      const newName = prompt("ערוך שם מצרך:", oldName);
+      if (!newName || !newName.trim()) return;
+
+      if (db) {
+        db.ref(`ramon_trip_app/food/${id}/name`).set(newName.trim());
+      } else {
+        if (item) {
+          item.name = newName.trim();
+          localStorage.setItem(KEY_FOOD, JSON.stringify(localFood));
+          renderFood(localFood);
+        }
+      }
+    }
+
+    function deleteFoodItem(id) {
+      if (!confirm("להסיר מצרך זה?")) return;
+      if (db) {
+        db.ref(`ramon_trip_app/food/${id}`).remove();
+      } else {
+        localFood = localFood.filter(i => i.id !== id);
+        localStorage.setItem(KEY_FOOD, JSON.stringify(localFood));
+        renderFood(localFood);
+      }
+    }
+
+    function toggleFood(id, done) {
+      if (db) {
+        db.ref(`ramon_trip_app/food/${id}/done`).set(done);
+      } else {
+        const item = localFood.find(i => i.id === id);
+        if (item) item.done = done;
+        localStorage.setItem(KEY_FOOD, JSON.stringify(localFood));
+        renderFood(localFood);
+      }
+    }
+
+    function changeFoodAssignee(id, assignee) {
+      if (db) {
+        db.ref(`ramon_trip_app/food/${id}/assignee`).set(assignee);
+      } else {
+        const item = localFood.find(i => i.id === id);
+        if (item) item.assignee = assignee;
+        localStorage.setItem(KEY_FOOD, JSON.stringify(localFood));
+        renderFood(localFood);
+      }
+    }
+
+    function resetFoodDefaults() {
+      if (!confirm("לאפס את רשימת האוכל לברירת המחדל המופרדת?")) return;
+      if (db) {
+        const foodMap = {};
+        initialFood.forEach(item => foodMap[item.id] = item);
+        db.ref('ramon_trip_app/food').set(foodMap);
+      } else {
+        localFood = [...initialFood];
+        localStorage.setItem(KEY_FOOD, JSON.stringify(localFood));
+        renderFood(localFood);
+      }
+    }
+
+    // --- GEAR LOGIC ---
+    function renderGear(items) {
+      const listEl = document.getElementById('gear-list');
+      listEl.innerHTML = '';
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.className = `p-3 flex items-center justify-between gap-2 ${item.done ? 'bg-slate-50 opacity-60' : ''}`;
+        const badge = getBadgeClass(item.assignee);
+
+        li.innerHTML = `
+          <div class="flex items-center gap-2 flex-1 min-w-0">
+            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleGear('${item.id}', ${!item.done})" class="rounded text-amber-800 h-4 w-4 cursor-pointer">
+            <div class="flex flex-col min-w-0 flex-1">
+              <span class="text-slate-800 font-semibold truncate ${item.done ? 'line-through text-slate-400' : ''}">${item.name}</span>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="text-[10px] text-slate-400 font-medium">כמות:</span>
+                <input type="text" value="${item.qty || '1'}" onchange="saveGearQty('${item.id}', this.value)" 
+                  class="w-32 bg-slate-100 text-slate-700 border border-slate-300 rounded px-1.5 py-0.5 text-xs font-bold focus:ring-1 focus:ring-slate-400 focus:outline-none">
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1">
+            <select onchange="changeGearAssignee('${item.id}', this.value)" class="text-[11px] font-semibold rounded-lg px-2 py-1 border ${badge} focus:outline-none cursor-pointer">
+              <option value="טרם שובץ" ${item.assignee === 'טרם שובץ' ? 'selected' : ''}>טרם שובץ</option>
+              <option value="פישר-כהן" ${item.assignee === 'פישר-כהן' ? 'selected' : ''}>פישר-כהן</option>
+              <option value="בנדה-פרנקל" ${item.assignee === 'בנדה-פרנקל' ? 'selected' : ''}>בנדה-פרנקל</option>
+            </select>
+            <button onclick="editGearNamePrompt('${item.id}')" title="ערוך שם פריט" class="text-slate-400 hover:text-amber-800 p-1">✏️</button>
+            <button onclick="deleteGearItem('${item.id}')" title="מחק פריט" class="text-slate-400 hover:text-rose-600 p-1">🗑️</button>
+          </div>
+        `;
+        listEl.appendChild(li);
+      });
+    }
+
+    function saveGearQty(id, newQty) {
+      if (!newQty.trim()) return;
+      if (db) {
+        db.ref(`ramon_trip_app/gear/${id}/qty`).set(newQty.trim());
+      } else {
+        const item = localGear.find(i => i.id === id);
+        if (item) {
+          item.qty = newQty.trim();
+          localStorage.setItem(KEY_GEAR, JSON.stringify(localGear));
+        }
+      }
+    }
+
+    function addGearItem(e) {
+      e.preventDefault();
+      const name = document.getElementById('gear-input').value.trim();
+      const qty = document.getElementById('gear-qty').value.trim() || '1 יח\'';
+      const assignee = document.getElementById('gear-assignee').value;
+      if (!name) return;
+
+      const newItem = { id: 'rg_' + Date.now(), name, qty, assignee, done: false };
+      if (db) {
+        db.ref('ramon_trip_app/gear/' + newItem.id).set(newItem);
+      } else {
+        localGear.unshift(newItem);
+        localStorage.setItem(KEY_GEAR, JSON.stringify(localGear));
+        renderGear(localGear);
+      }
+      document.getElementById('gear-input').value = '';
+      document.getElementById('gear-qty').value = '';
+    }
+
+    function editGearNamePrompt(id) {
+      const item = (db ? null : localGear.find(i => i.id === id));
+      const oldName = item ? item.name : '';
+      const newName = prompt("ערוך שם פריט ציוד:", oldName);
+      if (!newName || !newName.trim()) return;
+
+      if (db) {
+        db.ref(`ramon_trip_app/gear/${id}/name`).set(newName.trim());
+      } else {
+        if (item) {
+          item.name = newName.trim();
+          localStorage.setItem(KEY_GEAR, JSON.stringify(localGear));
+          renderGear(localGear);
+        }
+      }
+    }
+
+    function deleteGearItem(id) {
+      if (!confirm("להסיר פריט זה?")) return;
+      if (db) {
+        db.ref(`ramon_trip_app/gear/${id}`).remove();
+      } else {
+        localGear = localGear.filter(i => i.id !== id);
+        localStorage.setItem(KEY_GEAR, JSON.stringify(localGear));
+        renderGear(localGear);
+      }
+    }
+
+    function toggleGear(id, done) {
+      if (db) {
+        db.ref(`ramon_trip_app/gear/${id}/done`).set(done);
+      } else {
+        const item = localGear.find(i => i.id === id);
+        if (item) item.done = done;
+        localStorage.setItem(KEY_GEAR, JSON.stringify(localGear));
+        renderGear(localGear);
+      }
+    }
+
+    function changeGearAssignee(id, assignee) {
+      if (db) {
+        db.ref(`ramon_trip_app/gear/${id}/assignee`).set(assignee);
+      } else {
+        const item = localGear.find(i => i.id === id);
+        if (item) item.assignee = assignee;
+        localStorage.setItem(KEY_GEAR, JSON.stringify(localGear));
+        renderGear(localGear);
+      }
+    }
+
+    function resetGearDefaults() {
+      if (!confirm("לאפס את רשימת הציוד לברירת המחדל?")) return;
+      if (db) {
+        const gearMap = {};
+        initialGear.forEach(item => gearMap[item.id] = item);
+        db.ref('ramon_trip_app/gear').set(gearMap);
+      } else {
+        localGear = [...initialGear];
+        localStorage.setItem(KEY_GEAR, JSON.stringify(localGear));
+        renderGear(localGear);
+      }
+    }
+
+    // --- INITIALIZATION ---
+    if (db) {
+      db.ref('ramon_trip_app/menu').on('value', snap => {
+        const val = snap.val();
+        if (!val) resetMenuDefaults();
+        else renderMenu(Object.values(val));
+      });
+      db.ref('ramon_trip_app/food').on('value', snap => {
+        const val = snap.val();
+        if (!val) resetFoodDefaults();
+        else renderFood(Object.values(val));
+      });
+      db.ref('ramon_trip_app/gear').on('value', snap => {
+        const val = snap.val();
+        if (!val) resetGearDefaults();
+        else renderGear(Object.values(val));
+      });
+    } else {
+      renderMenu(localMenu);
+      renderFood(localFood);
+      renderGear(localGear);
+    }
+  </script>
+</body>
+</html>
