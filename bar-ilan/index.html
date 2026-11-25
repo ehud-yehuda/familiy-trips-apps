@@ -96,4 +96,128 @@
 
             <!-- כפתורי ניווט מהירים -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
-                <a id="btn-w
+                <a id="btn-waze" href="https://waze.com/ul?q=%D7%91%D7%A8%20%D7%90%D7%99%D7%9C%D7%9F%20%D7%A9%D7%A2%D7%A8%201%20%D7%A9%D7%A2%D7%A8%20%D7%A8%D7%9B%D7%91%20%D7%A8%D7%90%D7%A9%D7%99&navigate=yes" target="_blank" rel="noopener noreferrer"
+                   class="flex items-center justify-center gap-3 bg-navy hover:bg-navyLight text-white font-semibold py-3.5 px-5 rounded-xl transition-all duration-200 shadow-sm active:scale-[0.98] text-center">
+                    <i class="fa-brands fa-waze text-xl text-goldLight shrink-0"></i>
+                    <span>ניווט ב-Waze לשער 1 (שער רכב ראשי)</span>
+                </a>
+                <a id="btn-maps" href="https://maps.app.goo.gl/be7j3x8yr2GDSp4m9?g_st=iw" target="_blank" rel="noopener noreferrer"
+                   class="flex items-center justify-center gap-3 bg-cream hover:bg-creamDark text-navy border border-gold/50 font-semibold py-3.5 px-5 rounded-xl transition-all duration-200 shadow-sm active:scale-[0.98] text-center">
+                    <i class="fa-solid fa-map-location-dot text-lg text-goldDark shrink-0"></i>
+                    <span>מיקום בניין הסנאט ב-Google Maps</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- 2. כרטיסיית הוראות חניה -->
+        <section class="bg-white rounded-2xl p-6 sm:p-7 shadow-sm border border-gold/25">
+            <div class="flex items-center gap-3.5 mb-4">
+                <div class="w-11 h-11 rounded-xl bg-creamDark flex items-center justify-center text-navy shrink-0 border border-gold/20">
+                    <i class="fa-solid fa-square-parking text-xl text-goldDark"></i>
+                </div>
+                <h2 class="font-serif text-2xl font-bold text-navy">הוראות חניה</h2>
+            </div>
+
+            <!-- תגיות ויזואליות ברורות לחניה מותרת ואסורה -->
+            <div class="flex flex-wrap gap-2.5 mb-4">
+                <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-semibold bg-emerald-50 text-emerald-900 border border-emerald-200">
+                    <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                    <span>כחול-לבן או אפור • חינם בקרבת הבניין</span>
+                </span>
+                <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-semibold bg-red-50 text-red-900 border border-red-200">
+                    <i class="fa-solid fa-ban text-red-600"></i>
+                    <span>אסור לחנות באדום-לבן</span>
+                </span>
+            </div>
+
+            <!-- הטקסט המדויק שהוזן -->
+            <div class="p-4 rounded-xl bg-cream border border-gold/25 text-navy text-base sm:text-lg leading-relaxed font-medium">
+                ניתן לחנות בחינם בכל מקום בקרבת הבנין בכחול לבן או באפור. אסור לחנות באדום לבן
+            </div>
+        </section>
+
+        <!-- 3. כרטיסיית טופס רישום לכניסת רכב (Google Form) -->
+        <section class="bg-white rounded-2xl p-6 sm:p-7 shadow-sm border border-gold/30">
+            <div class="flex items-center gap-3.5 mb-3">
+                <div class="w-11 h-11 rounded-xl bg-navy text-goldLight flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-id-card text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="font-serif text-2xl font-bold text-navy">טופס רישום לכניסת רכב</h2>
+                    <p class="text-xs sm:text-sm text-gray-600">יש למלא את פרטי הרכב מראש לאישור כניסה בשער האוניברסיטה</p>
+                </div>
+            </div>
+
+            <!-- כפתור ראשי בולט לפתיחת הטופס בחלון חדש -->
+            <div class="mt-4">
+                <a id="btn-google-form" href="https://docs.google.com/forms/d/1Z76A_mwF0BghtnKGe_D7ouF0JIDbAo6Jk9fA4gdUg88/viewform" target="_blank" rel="noopener noreferrer"
+                   class="w-full bg-gradient-to-l from-goldDark to-gold hover:from-navy hover:to-navyLight text-white font-bold py-4 px-6 rounded-xl shadow-md transition-all duration-300 flex items-center justify-center gap-3 text-base sm:text-lg active:scale-[0.98]">
+                    <i class="fa-solid fa-file-signature text-xl"></i>
+                    <span>למילוי טופס אישור כניסת רכב</span>
+                    <i class="fa-solid fa-arrow-up-left-from-square text-sm opacity-90"></i>
+                </a>
+            </div>
+
+            <!-- אזור הטמעת הטופס ישירות בתוך הדף -->
+            <div class="mt-6 pt-5 border-t border-gold/20">
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <span class="text-sm font-semibold text-navy">או מלאו ישירות כאן בעמוד:</span>
+                    <button type="button" id="toggle-embed-btn" class="text-xs text-goldDark hover:text-navy underline font-semibold transition">
+                        הסתר טופס מוטמע
+                    </button>
+                </div>
+
+                <div id="embed-container" class="w-full rounded-xl overflow-hidden border border-gold/30 bg-cream/40">
+                    <iframe id="google-form-iframe"
+                            src="https://docs.google.com/forms/d/1Z76A_mwF0BghtnKGe_D7ouF0JIDbAo6Jk9fA4gdUg88/viewform?embedded=true"
+                            class="w-full h-[640px] border-0"
+                            loading="lazy"
+                            title="טופס רישום לכניסת רכב">
+                        טוען טופס...
+                    </iframe>
+                </div>
+
+                <!-- הודעת גיבוי למקרה שהטופס דורש פתיחה חיצונית או הרשאת צפייה -->
+                <p class="mt-3 text-xs text-gray-500 flex items-start gap-2 leading-relaxed">
+                    <i class="fa-solid fa-circle-info text-goldDark mt-0.5 shrink-0"></i>
+                    <span>
+                        אם הטופס אינו נטען כאן או מבקש הרשאת גישה, לחצו על הכפתור הכחול/זהב למעלה לפתיחתו הישירה בדפדפן.
+                    </span>
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- כותרת תחתונה (Footer) -->
+    <footer class="py-6 px-4 text-center text-xs text-gray-500 border-t border-gold/15 bg-white/50">
+        <p>נסיעה טובה ובטוחה • אוניברסיטת בר-אילן</p>
+    </footer>
+
+    <!-- לוגיקת JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. עדכון דינמי של הקישורים והכותרות מתוך EVENT_CONFIG
+            document.getElementById('display-subtitle').textContent = EVENT_CONFIG.subtitle;
+            document.getElementById('btn-waze').href = EVENT_CONFIG.wazeUrl;
+            document.getElementById('btn-maps').href = EVENT_CONFIG.googleMapsUrl;
+            document.getElementById('btn-google-form').href = EVENT_CONFIG.googleFormPublicUrl;
+            document.getElementById('google-form-iframe').src = EVENT_CONFIG.googleFormEmbedUrl;
+
+            // 2. הצגה / הסתרה של הטופס המוטמע
+            const toggleEmbedBtn = document.getElementById('toggle-embed-btn');
+            const embedContainer = document.getElementById('embed-container');
+            toggleEmbedBtn.addEventListener('click', () => {
+                const isHidden = embedContainer.classList.contains('hidden');
+                if (isHidden) {
+                    embedContainer.classList.remove('hidden');
+                    toggleEmbedBtn.textContent = 'הסתר טופס מוטמע';
+                } else {
+                    embedContainer.classList.add('hidden');
+                    toggleEmbedBtn.textContent = 'הצג טופס מוטמע';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
