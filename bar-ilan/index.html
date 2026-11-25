@@ -1,3 +1,5 @@
+עדכנתי את פלטת הצבעים של דף הנחיתה לגוון ירוק עמוק (#0F2C23 / #163B30) תואם להזמנה, יחד עם טקסטים בהירים בצבע שמנת חם (#FAF8F5) ועיטורי זהב (#C5A059 / #DFC58D) ששומרים על קריאות גבוהה ומראה אלגנטי.
+להלן הקוד המלא והמעודכן מוכן להעתקה ישירה ל-GitHub:
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -8,10 +10,10 @@
     <!-- טעינת Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- טעינת גופנים אלגנטיים בעברית: Frank Ruhl Libre לכותרות ו-Heebo לטקסט -->
+    <!-- טעינת גופנים אלגנטיים בעברית: Frank Ruhl Libre לכותרות, Heebo לטקסט ו-Gveret Levin לכתב מסולסל -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Gveret+Levin&family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <!-- טעינת אייקונים של FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -22,9 +24,10 @@
                 extend: {
                     colors: {
                         cream: '#FAF8F5',
-                        creamDark: '#F2EDE4',
-                        navy: '#14243B',
-                        navyLight: '#223A5E',
+                        creamDark: '#EFE9DD',
+                        forest: '#0F2C23',
+                        forestLight: '#173E32',
+                        forestDark: '#091D17',
                         gold: '#C5A059',
                         goldLight: '#DFC58D',
                         goldDark: '#A3803B'
@@ -32,13 +35,14 @@
                     fontFamily: {
                         sans: ['Heebo', 'sans-serif'],
                         serif: ['Frank Ruhl Libre', 'serif'],
+                        script: ['"Gveret Levin"', 'cursive'],
                     }
                 }
             }
         }
     </script>
 </head>
-<body class="bg-cream text-navy font-sans antialiased selection:bg-gold selection:text-white min-h-screen flex flex-col">
+<body class="bg-forest text-cream font-sans antialiased selection:bg-gold selection:text-forest min-h-screen flex flex-col">
 
     <!-- ===================================================================== -->
     <!-- הגדרות הקישורים והפרטים לאירוע באוניברסיטת בר-אילן                  -->
@@ -58,37 +62,37 @@
 
     <!-- כותרת ראשית (Header) -->
     <header class="pt-10 pb-6 px-4 text-center max-w-2xl mx-auto w-full">
-        <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-white border border-gold/40 shadow-sm mb-4 text-gold">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-forestLight border border-gold/50 shadow-md mb-4 text-goldLight">
             <i class="fa-solid fa-car-side text-2xl"></i>
         </div>
-        <p id="display-subtitle" class="text-sm sm:text-base font-semibold tracking-wide text-goldDark mb-1.5">
+        <p id="display-subtitle" class="text-sm sm:text-base font-semibold tracking-wide text-goldLight mb-1.5">
             הזמנה לאירוע • אוניברסיטת בר-אילן
         </p>
-        <h1 class="font-serif text-3xl sm:text-4xl font-bold text-navy leading-tight">
+        <h1 class="font-serif text-3xl sm:text-4xl font-bold text-cream leading-tight">
             הוראות הגעה, חניה ואישור כניסת רכב
         </h1>
         <div class="w-20 h-0.5 bg-gold mx-auto mt-4 rounded-full"></div>
     </header>
 
     <!-- תוכן מרכזי -->
-    <main class="flex-grow px-4 pb-12 max-w-2xl mx-auto w-full space-y-6">
+    <main class="flex-grow px-4 pb-10 max-w-2xl mx-auto w-full space-y-6">
 
         <!-- 1. כרטיסיית הוראות הגעה וניווט מהיר -->
-        <section class="bg-white rounded-2xl p-6 sm:p-7 shadow-sm border border-gold/25 relative overflow-hidden">
+        <section class="bg-cream text-forest rounded-2xl p-6 sm:p-7 shadow-lg border border-gold/40 relative overflow-hidden">
             <div class="flex items-start gap-4">
-                <div class="w-11 h-11 rounded-xl bg-creamDark flex items-center justify-center text-navy shrink-0 border border-gold/20">
+                <div class="w-11 h-11 rounded-xl bg-creamDark flex items-center justify-center text-forest shrink-0 border border-gold/30">
                     <i class="fa-solid fa-location-dot text-lg text-goldDark"></i>
                 </div>
                 <div class="flex-grow">
-                    <h2 class="font-serif text-2xl font-bold text-navy mb-2">הוראות הגעה</h2>
-                    <div class="space-y-2 text-navy text-base leading-relaxed">
+                    <h2 class="font-serif text-2xl font-bold text-forest mb-2">הוראות הגעה</h2>
+                    <div class="space-y-2 text-forest text-base leading-relaxed">
                         <p class="flex items-start gap-2">
                             <i class="fa-solid fa-route text-goldDark mt-1.5 text-sm shrink-0"></i>
-                            <span>כניסה לאוניברסיטה בוויז: <strong class="font-bold text-navy">״בר אילן שער 1 שער רכב ראשי״</strong>.</span>
+                            <span>כניסה לאוניברסיטה בוויז: <strong class="font-bold text-forest">״בר אילן שער 1 שער רכב ראשי״</strong>.</span>
                         </p>
                         <p class="flex items-start gap-2">
                             <i class="fa-solid fa-building-columns text-goldDark mt-1.5 text-sm shrink-0"></i>
-                            <span>מיקום האירוע בקמפוס: <strong class="font-bold text-navy">בניין הסנאט</strong></span>
+                            <span>מיקום האירוע בקמפוס: <strong class="font-bold text-forest">בניין הסנאט</strong></span>
                         </p>
                     </div>
                 </div>
@@ -97,12 +101,12 @@
             <!-- כפתורי ניווט מהירים -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
                 <a id="btn-waze" href="waze://?q=בר אילן שער 1 שער רכב ראשי"
-                   class="flex items-center justify-center gap-3 bg-navy hover:bg-navyLight text-white font-semibold py-3.5 px-5 rounded-xl transition-all duration-200 shadow-sm active:scale-[0.98] text-center">
+                   class="flex items-center justify-center gap-3 bg-forest hover:bg-forestLight text-white font-semibold py-3.5 px-5 rounded-xl transition-all duration-200 shadow-sm active:scale-[0.98] text-center">
                     <i class="fa-brands fa-waze text-xl text-goldLight shrink-0"></i>
                     <span>ניווט ב-Waze לשער 1 (שער רכב ראשי)</span>
                 </a>
                 <a id="btn-maps" href="https://maps.app.goo.gl/be7j3x8yr2GDSp4m9?g_st=iw" target="_blank" rel="noopener noreferrer"
-                   class="flex items-center justify-center gap-3 bg-cream hover:bg-creamDark text-navy border border-gold/50 font-semibold py-3.5 px-5 rounded-xl transition-all duration-200 shadow-sm active:scale-[0.98] text-center">
+                   class="flex items-center justify-center gap-3 bg-white hover:bg-creamDark text-forest border border-gold/60 font-semibold py-3.5 px-5 rounded-xl transition-all duration-200 shadow-sm active:scale-[0.98] text-center">
                     <i class="fa-solid fa-map-location-dot text-lg text-goldDark shrink-0"></i>
                     <span>מיקום בניין הסנאט ב-Google Maps</span>
                 </a>
@@ -110,48 +114,48 @@
         </section>
 
         <!-- 2. כרטיסיית הוראות חניה -->
-        <section class="bg-white rounded-2xl p-6 sm:p-7 shadow-sm border border-gold/25">
+        <section class="bg-cream text-forest rounded-2xl p-6 sm:p-7 shadow-lg border border-gold/40">
             <div class="flex items-center gap-3.5 mb-4">
-                <div class="w-11 h-11 rounded-xl bg-creamDark flex items-center justify-center text-navy shrink-0 border border-gold/20">
+                <div class="w-11 h-11 rounded-xl bg-creamDark flex items-center justify-center text-forest shrink-0 border border-gold/30">
                     <i class="fa-solid fa-square-parking text-xl text-goldDark"></i>
                 </div>
-                <h2 class="font-serif text-2xl font-bold text-navy">הוראות חניה</h2>
+                <h2 class="font-serif text-2xl font-bold text-forest">הוראות חניה</h2>
             </div>
 
             <!-- תגיות ויזואליות ברורות לחניה מותרת ואסורה -->
             <div class="flex flex-wrap gap-2.5 mb-4">
-                <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-semibold bg-emerald-50 text-emerald-900 border border-emerald-200">
-                    <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-semibold bg-emerald-100/80 text-emerald-950 border border-emerald-300">
+                    <i class="fa-solid fa-circle-check text-emerald-700"></i>
                     <span>כחול-לבן או אפור • חינם בקרבת הבניין</span>
                 </span>
-                <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-semibold bg-red-50 text-red-900 border border-red-200">
-                    <i class="fa-solid fa-ban text-red-600"></i>
+                <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-semibold bg-red-100/80 text-red-950 border border-red-300">
+                    <i class="fa-solid fa-ban text-red-700"></i>
                     <span>אסור לחנות באדום-לבן</span>
                 </span>
             </div>
 
             <!-- הטקסט המדויק שהוזן -->
-            <div class="p-4 rounded-xl bg-cream border border-gold/25 text-navy text-base sm:text-lg leading-relaxed font-medium">
+            <div class="p-4 rounded-xl bg-white border border-gold/30 text-forest text-base sm:text-lg leading-relaxed font-medium">
                 ניתן לחנות בחינם בכל מקום בקרבת הבנין בכחול לבן או באפור. אסור לחנות באדום לבן
             </div>
         </section>
 
         <!-- 3. כרטיסיית טופס רישום לכניסת רכב (Google Form) -->
-        <section class="bg-white rounded-2xl p-6 sm:p-7 shadow-sm border border-gold/30">
+        <section class="bg-cream text-forest rounded-2xl p-6 sm:p-7 shadow-lg border border-gold/40">
             <div class="flex items-center gap-3.5 mb-3">
-                <div class="w-11 h-11 rounded-xl bg-navy text-goldLight flex items-center justify-center shrink-0">
+                <div class="w-11 h-11 rounded-xl bg-forest text-goldLight flex items-center justify-center shrink-0">
                     <i class="fa-solid fa-id-card text-lg"></i>
                 </div>
                 <div>
-                    <h2 class="font-serif text-2xl font-bold text-navy">טופס רישום לכניסת רכב</h2>
-                    <p class="text-xs sm:text-sm text-gray-600">יש למלא את פרטי הרכב מראש לאישור כניסה בשער האוניברסיטה</p>
+                    <h2 class="font-serif text-2xl font-bold text-forest">טופס רישום לכניסת רכב</h2>
+                    <p class="text-xs sm:text-sm text-forest/75">יש למלא את פרטי הרכב מראש לאישור כניסה בשער האוניברסיטה</p>
                 </div>
             </div>
 
             <!-- כפתור ראשי בולט לפתיחת הטופס בחלון חדש -->
             <div class="mt-4">
                 <a id="btn-google-form" href="https://docs.google.com/forms/d/1Z76A_mwF0BghtnKGe_D7ouF0JIDbAo6Jk9fA4gdUg88/viewform" target="_blank" rel="noopener noreferrer"
-                   class="w-full bg-gradient-to-l from-goldDark to-gold hover:from-navy hover:to-navyLight text-white font-bold py-4 px-6 rounded-xl shadow-md transition-all duration-300 flex items-center justify-center gap-3 text-base sm:text-lg active:scale-[0.98]">
+                   class="w-full bg-gradient-to-l from-goldDark to-gold hover:from-forest hover:to-forestLight text-white font-bold py-4 px-6 rounded-xl shadow-md transition-all duration-300 flex items-center justify-center gap-3 text-base sm:text-lg active:scale-[0.98]">
                     <i class="fa-solid fa-file-signature text-xl"></i>
                     <span>למילוי טופס אישור כניסת רכב</span>
                     <i class="fa-solid fa-arrow-up-left-from-square text-sm opacity-90"></i>
@@ -159,15 +163,15 @@
             </div>
 
             <!-- אזור הטמעת הטופס ישירות בתוך הדף -->
-            <div class="mt-6 pt-5 border-t border-gold/20">
+            <div class="mt-6 pt-5 border-t border-gold/30">
                 <div class="flex items-center justify-between gap-2 mb-3">
-                    <span class="text-sm font-semibold text-navy">או מלאו ישירות כאן בעמוד:</span>
-                    <button type="button" id="toggle-embed-btn" class="text-xs text-goldDark hover:text-navy underline font-semibold transition">
+                    <span class="text-sm font-semibold text-forest">או מלאו ישירות כאן בעמוד:</span>
+                    <button type="button" id="toggle-embed-btn" class="text-xs text-goldDark hover:text-forest underline font-semibold transition">
                         הסתר טופס מוטמע
                     </button>
                 </div>
 
-                <div id="embed-container" class="w-full rounded-xl overflow-hidden border border-gold/30 bg-cream/40">
+                <div id="embed-container" class="w-full rounded-xl overflow-hidden border border-gold/40 bg-white">
                     <iframe id="google-form-iframe"
                             src="https://docs.google.com/forms/d/1Z76A_mwF0BghtnKGe_D7ouF0JIDbAo6Jk9fA4gdUg88/viewform?embedded=true"
                             class="w-full h-[640px] border-0"
@@ -178,19 +182,31 @@
                 </div>
 
                 <!-- הודעת גיבוי למקרה שהטופס דורש פתיחה חיצונית או הרשאת צפייה -->
-                <p class="mt-3 text-xs text-gray-500 flex items-start gap-2 leading-relaxed">
+                <p class="mt-3 text-xs text-forest/70 flex items-start gap-2 leading-relaxed">
                     <i class="fa-solid fa-circle-info text-goldDark mt-0.5 shrink-0"></i>
                     <span>
-                        אם הטופס אינו נטען כאן או מבקש הרשאת גישה, לחצו על הכפתור הכחול/זהב למעלה לפתיחתו הישירה בדפדפן.
+                        אם הטופס אינו נטען כאן או מבקש הרשאת גישה, לחצו על הכפתור למעלה לפתיחתו הישירה בדפדפן.
                     </span>
                 </p>
             </div>
         </section>
 
+        <!-- 4. הודעת יצירת קשר לעזרה בכתב מסולסל -->
+        <section class="pt-3 pb-2 text-center px-3">
+            <p class="font-script text-2xl sm:text-[28px] text-cream leading-relaxed">
+                לעזרה באישורי כניסה לרכב לאוניברסיטה או לענייני חניה,
+                <br>
+                רוזנה - 
+                <a href="tel:+972527473271" dir="ltr" class="inline-block text-goldLight hover:text-white underline decoration-gold/70 underline-offset-4 transition">
+                    052-7473271
+                </a>
+            </p>
+        </section>
+
     </main>
 
     <!-- כותרת תחתונה (Footer) -->
-    <footer class="py-6 px-4 text-center text-xs text-gray-500 border-t border-gold/15 bg-white/50">
+    <footer class="py-6 px-4 text-center text-xs text-cream/70 border-t border-gold/25 bg-forestDark/60">
         <p>נסיעה טובה ובטוחה • אוניברסיטת בר-אילן</p>
     </footer>
 
@@ -231,3 +247,4 @@
     </script>
 </body>
 </html>
+
